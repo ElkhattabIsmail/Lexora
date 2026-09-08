@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -25,10 +26,13 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'nom' => fake()->lastName(),
+            'prenom' => fake()->firstName(),
             'email' => fake()->unique()->safeEmail(),
+            'telephone' => fake()->phoneNumber(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'role_id' => Role::factory(),
             'remember_token' => Str::random(10),
         ];
     }
@@ -40,6 +44,36 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /**
+     * Utilisateur avec rôle Administrateur.
+     */
+    public function administrateur(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role_id' => Role::firstWhere('nom', 'Administrateur')?->id ?? Role::factory()->administrateur(),
+        ]);
+    }
+
+    /**
+     * Utilisateur avec rôle Avocat.
+     */
+    public function avocat(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role_id' => Role::firstWhere('nom', 'Avocat')?->id ?? Role::factory()->avocat(),
+        ]);
+    }
+
+    /**
+     * Utilisateur avec rôle Assistant Juridique.
+     */
+    public function assistantJuridique(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role_id' => Role::firstWhere('nom', 'Assistant Juridique')?->id ?? Role::factory()->assistantJuridique(),
         ]);
     }
 }
