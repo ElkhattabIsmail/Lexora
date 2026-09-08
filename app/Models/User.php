@@ -2,20 +2,31 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    protected $fillable = [
+        'nom',
+        'prenom',
+        'email',
+        'telephone',
+        'password',
+        'role_id',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -28,5 +39,77 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Le rôle de l'utilisateur.
+     */
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Les dossiers dont l'utilisateur est responsable (avocat).
+     */
+    public function dossiers(): HasMany
+    {
+        return $this->hasMany(Dossier::class, 'avocat_id');
+    }
+
+    /**
+     * Les audiences gérées par l'utilisateur.
+     */
+    public function audiences(): HasMany
+    {
+        return $this->hasMany(Audience::class, 'avocat_id');
+    }
+
+    /**
+     * Les documents téléversés par l'utilisateur.
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class, 'uploaded_by');
+    }
+
+    /**
+     * Les entrées d'historique créées par l'utilisateur.
+     */
+    public function historiques(): HasMany
+    {
+        return $this->hasMany(Historique::class, 'user_id');
+    }
+
+    /**
+     * Les notifications reçues par l'utilisateur.
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class, 'user_id');
+    }
+
+    /**
+     * Vérifie si l'utilisateur est administrateur.
+     */
+    public function isAdministrateur(): bool
+    {
+        return $this->role?->nom === 'Administrateur';
+    }
+
+    /**
+     * Vérifie si l'utilisateur est avocat.
+     */
+    public function isAvocat(): bool
+    {
+        return $this->role?->nom === 'Avocat';
+    }
+
+    /**
+     * Vérifie si l'utilisateur est assistant juridique.
+     */
+    public function isAssistantJuridique(): bool
+    {
+        return $this->role?->nom === 'Assistant Juridique';
     }
 }
