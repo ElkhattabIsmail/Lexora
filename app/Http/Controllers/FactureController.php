@@ -16,15 +16,24 @@ class FactureController extends Controller
     public function index(Request $request): View
     {
         $statut = $request->string('statut')->trim()->toString();
+        $search = $request->string('search')->trim()->toString();
 
         $factures = Facture::query()
             ->with(['client', 'dossier'])
             ->when($statut, fn ($q) => $q->where('statut', $statut))
+            ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
+                $q->where('numero_facture', 'like', "%{$search}%")
+                    ->orWhereHas('dossier', fn ($q) => $q->where('numero_dossier', 'like', "%{$search}%"))
+                    ->orWhereHas('client', fn ($q) => $q->where(fn ($q) => $q
+                        ->where('nom', 'like', "%{$search}%")
+                        ->orWhere('prenom', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")));
+            }))
             ->latest()
             ->paginate(15)
             ->withQueryString();
 
-        return view('factures.index', compact('factures', 'statut'));
+        return view('factures.index', compact('factures', 'statut', 'search'));
     }
 
     public function create(): View

@@ -61,6 +61,21 @@ class ClientCrudTest extends TestCase
     }
 
     /**
+     * Vérifie que le filtre par type ne renvoie que les clients correspondants.
+     */
+    public function test_client_index_filters_by_type(): void
+    {
+        $avocat = User::factory()->avocat()->create();
+        $entreprise = Client::factory()->entreprise()->create(['nom' => 'Acme SARL']);
+        $particulier = Client::factory()->particulier()->create(['nom' => 'Berrada', 'prenom' => 'Salma']);
+
+        $response = $this->actingAs($avocat)->get(route('clients.index', ['type' => 'Entreprise']));
+
+        $response->assertSee($entreprise->nom);
+        $response->assertDontSee($particulier->nom_complet);
+    }
+
+    /**
      * Vérifie qu'une requête valide crée le client et redirige vers sa fiche.
      */
     public function test_valid_payload_creates_client_and_redirects_to_show(): void

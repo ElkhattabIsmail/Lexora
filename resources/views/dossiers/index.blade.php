@@ -14,20 +14,24 @@
     <div class="py-12 bg-slate-50 min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-            <x-flash-messages />
-
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
 
                 {{-- Filters --}}
                 <div class="p-4 border-b border-slate-100 flex flex-wrap gap-3 items-center">
                     <form method="GET" action="{{ route('dossiers.index') }}" class="flex flex-wrap gap-3 items-center w-full">
-                        <select name="statut" class="text-sm border-slate-200 rounded-lg focus:ring-brand-DEFAULT focus:border-brand-DEFAULT">
+                        <div class="relative w-full lg:w-72">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <svg class="w-4 h-4 text-slate-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/></svg>
+                            </div>
+                            <input type="search" name="search" value="{{ $search }}" class="block w-full p-2.5 pl-10 text-sm text-slate-900 border border-slate-200 rounded-lg bg-slate-50 focus:ring-brand-DEFAULT focus:border-brand-DEFAULT transition-colors" placeholder="N° dossier, affaire, client...">
+                        </div>
+                        <select name="statut" class="text-sm border-slate-200 rounded-lg bg-slate-50 p-2.5 focus:ring-brand-DEFAULT focus:border-brand-DEFAULT">
                             <option value="">Tous les statuts</option>
                             @foreach (['En cours', 'Gagné', 'Perdu', 'Fermé'] as $s)
                                 <option value="{{ $s }}" {{ $statut == $s ? 'selected' : '' }}>{{ $s }}</option>
                             @endforeach
                         </select>
-                        <select name="avocat_id" class="text-sm border-slate-200 rounded-lg focus:ring-brand-DEFAULT focus:border-brand-DEFAULT">
+                        <select name="avocat_id" class="text-sm border-slate-200 rounded-lg bg-slate-50 p-2.5 focus:ring-brand-DEFAULT focus:border-brand-DEFAULT">
                             <option value="">Tous les avocats</option>
                             @foreach ($avocats as $avocat)
                                 <option value="{{ $avocat->id }}" {{ $avocatId == $avocat->id ? 'selected' : '' }}>{{ $avocat->nom_complet }}</option>
@@ -87,6 +91,9 @@
                                     <td colspan="7" class="px-6 py-16 text-center text-slate-400">
                                         <svg class="w-12 h-12 mx-auto mb-4 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                         <p class="font-medium">Aucun dossier trouvé</p>
+                                        @if ($search || $statut || $avocatId)
+                                            <p class="text-sm mt-1">Essayez d'ajuster vos filtres.</p>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforelse

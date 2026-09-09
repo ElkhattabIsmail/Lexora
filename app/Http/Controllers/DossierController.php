@@ -17,18 +17,27 @@ class DossierController extends Controller
     {
         $statut = $request->string('statut')->trim()->toString();
         $avocatId = $request->integer('avocat_id') ?: null;
+        $search = $request->string('search')->trim()->toString();
 
         $dossiers = Dossier::query()
             ->with(['client', 'avocat'])
             ->when($statut, fn ($q) => $q->where('statut', $statut))
             ->when($avocatId, fn ($q) => $q->where('avocat_id', $avocatId))
+            ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
+                $q->where('numero_dossier', 'like', "%{$search}%")
+                    ->orWhere('type_affaire', 'like', "%{$search}%")
+                    ->orWhereHas('client', fn ($q) => $q->where(fn ($q) => $q
+                        ->where('nom', 'like', "%{$search}%")
+                        ->orWhere('prenom', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")));
+            }))
             ->latest()
             ->paginate(15)
             ->withQueryString();
 
         $avocats = User::whereHas('role', fn ($q) => $q->where('nom', 'Avocat'))->get();
 
-        return view('dossiers.index', compact('dossiers', 'avocats', 'statut', 'avocatId'));
+        return view('dossiers.index', compact('dossiers', 'avocats', 'statut', 'avocatId', 'search'));
     }
 
     public function create(): View

@@ -26,7 +26,7 @@ class DossierFactory extends Factory
             : null;
 
         return [
-            'numero_dossier' => 'DOS-'.fake()->unique()->numerify('2026-####'),
+            'numero_dossier' => 'DOS-'.now()->year.'-'.fake()->unique()->numberBetween(90001, 99999),
             'type_affaire' => fake()->randomElement([
                 'Droit des affaires',
                 'Droit du travail',

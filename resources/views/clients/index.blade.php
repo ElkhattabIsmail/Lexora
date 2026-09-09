@@ -14,9 +14,6 @@
     <div class="py-12 bg-slate-50 min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-            {{-- Flash messages --}}
-            <x-flash-messages />
-
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
 
                 {{-- Search --}}
@@ -32,6 +29,11 @@
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
                             Filtrer
                         </button>
+                        <select name="type" class="text-sm border-slate-200 rounded-lg bg-slate-50 py-2.5 px-3 focus:ring-brand-DEFAULT focus:border-brand-DEFAULT">
+                            <option value="">Tous les types</option>
+                            <option value="Particulier" {{ $type === 'Particulier' ? 'selected' : '' }}>Particulier</option>
+                            <option value="Entreprise" {{ $type === 'Entreprise' ? 'selected' : '' }}>Entreprise</option>
+                        </select>
                     </form>
                     <p class="text-sm text-slate-500 shrink-0">{{ $clients->total() }} client(s)</p>
                 </div>
@@ -96,7 +98,7 @@
                                     <td colspan="5" class="px-6 py-16 text-center text-slate-400">
                                         <svg class="w-12 h-12 mx-auto mb-4 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                         <p class="font-medium">Aucun client trouvé</p>
-                                        @if ($search)
+                                        @if ($search || $type)
                                             <p class="text-sm mt-1">Essayez un autre terme de recherche.</p>
                                         @else
                                             <a href="{{ route('clients.create') }}" class="mt-3 inline-block text-brand-DEFAULT text-sm hover:underline">Créer le premier client</a>

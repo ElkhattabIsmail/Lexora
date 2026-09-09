@@ -20,7 +20,7 @@ class FactureFactory extends Factory
     public function definition(): array
     {
         return [
-            'numero_facture' => 'FAC-'.fake()->unique()->numerify('2026-####'),
+            'numero_facture' => 'FAC-'.now()->year.'-'.fake()->unique()->numberBetween(90001, 99999),
             'montant' => fake()->randomFloat(2, 1500, 35000),
             'date_facture' => fake()->dateTimeBetween('-6 months', 'now')->format('Y-m-d'),
             'statut' => fake()->randomElement(['Payée', 'Non payée']),

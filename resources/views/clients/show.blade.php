@@ -25,9 +25,6 @@
     <div class="py-12 bg-slate-50 min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-            {{-- Flash messages --}}
-            <x-flash-messages />
-
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {{-- Left: Profile Card --}}

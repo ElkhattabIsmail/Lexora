@@ -14,14 +14,18 @@
     <div class="py-12 bg-slate-50 min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-            <x-flash-messages />
-
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
 
                 {{-- Filters --}}
                 <div class="p-4 border-b border-slate-100 flex flex-wrap gap-3 items-center">
                     <form method="GET" action="{{ route('factures.index') }}" class="flex flex-wrap gap-3 items-center w-full">
-                        <select name="statut" class="text-sm border-slate-200 rounded-lg focus:ring-brand-DEFAULT focus:border-brand-DEFAULT">
+                        <div class="relative w-full lg:w-72">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <svg class="w-4 h-4 text-slate-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/></svg>
+                            </div>
+                            <input type="search" name="search" value="{{ $search }}" class="block w-full p-2.5 pl-10 text-sm text-slate-900 border border-slate-200 rounded-lg bg-slate-50 focus:ring-brand-DEFAULT focus:border-brand-DEFAULT transition-colors" placeholder="N° facture, dossier, client...">
+                        </div>
+                        <select name="statut" class="text-sm border-slate-200 rounded-lg bg-slate-50 p-2.5 focus:ring-brand-DEFAULT focus:border-brand-DEFAULT">
                             <option value="">Tous les statuts</option>
                             @foreach (['Payée', 'Non payée'] as $s)
                                 <option value="{{ $s }}" {{ $statut == $s ? 'selected' : '' }}>{{ $s }}</option>
@@ -81,6 +85,9 @@
                                     <td colspan="7" class="px-6 py-16 text-center text-slate-400">
                                         <svg class="w-12 h-12 mx-auto mb-4 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                         <p class="font-medium">Aucune facture trouvée</p>
+                                        @if ($search || $statut)
+                                            <p class="text-sm mt-1">Essayez d'ajuster vos filtres.</p>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforelse

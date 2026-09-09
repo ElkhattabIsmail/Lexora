@@ -42,6 +42,38 @@ class DossierCrudTest extends TestCase
     }
 
     /**
+     * Vérifie que la recherche par référence ne renvoie que le dossier correspondant.
+     */
+    public function test_dossier_index_searches_by_reference(): void
+    {
+        $avocat = User::factory()->avocat()->create();
+        $found = Dossier::factory()->enCours()->create(['avocat_id' => $avocat->id]);
+        $hidden = Dossier::factory()->gagne()->create(['avocat_id' => $avocat->id]);
+
+        $response = $this->actingAs($avocat)->get(route('dossiers.index', ['search' => $found->numero_dossier]));
+
+        $response->assertSee($found->numero_dossier);
+        $response->assertDontSee($hidden->numero_dossier);
+    }
+
+    /**
+     * Vérifie que la recherche par client ne renvoie que les dossiers correspondants.
+     */
+    public function test_dossier_index_searches_by_client(): void
+    {
+        $avocat = User::factory()->avocat()->create();
+        $foundClient = Client::factory()->particulier()->create(['nom' => 'Martin', 'prenom' => 'Paul']);
+        $hiddenClient = Client::factory()->particulier()->create(['nom' => 'Berrada', 'prenom' => 'Salma']);
+        $found = Dossier::factory()->enCours()->create(['client_id' => $foundClient->id, 'avocat_id' => $avocat->id]);
+        $hidden = Dossier::factory()->enCours()->create(['client_id' => $hiddenClient->id, 'avocat_id' => $avocat->id]);
+
+        $response = $this->actingAs($avocat)->get(route('dossiers.index', ['search' => 'Martin']));
+
+        $response->assertSee($found->numero_dossier);
+        $response->assertDontSee($hidden->numero_dossier);
+    }
+
+    /**
      * Vérifie qu'une requête valide crée le dossier avec un numéro généré.
      */
     public function test_valid_payload_creates_dossier_and_generates_numero(): void

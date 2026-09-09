@@ -44,6 +44,38 @@ class FactureCrudTest extends TestCase
     }
 
     /**
+     * Vérifie que la recherche par référence ne renvoie que la facture correspondante.
+     */
+    public function test_facture_index_searches_by_reference(): void
+    {
+        $avocat = User::factory()->avocat()->create();
+        $found = Facture::factory()->payee()->create();
+        $hidden = Facture::factory()->nonPayee()->create();
+
+        $response = $this->actingAs($avocat)->get(route('factures.index', ['search' => $found->numero_facture]));
+
+        $response->assertSee($found->numero_facture);
+        $response->assertDontSee($hidden->numero_facture);
+    }
+
+    /**
+     * Vérifie que la recherche par client ne renvoie que les factures correspondantes.
+     */
+    public function test_facture_index_searches_by_client(): void
+    {
+        $avocat = User::factory()->avocat()->create();
+        $foundClient = Client::factory()->particulier()->create(['nom' => 'Martin', 'prenom' => 'Paul']);
+        $hiddenClient = Client::factory()->particulier()->create(['nom' => 'Berrada', 'prenom' => 'Salma']);
+        $found = Facture::factory()->payee()->create(['client_id' => $foundClient->id]);
+        $hidden = Facture::factory()->nonPayee()->create(['client_id' => $hiddenClient->id]);
+
+        $response = $this->actingAs($avocat)->get(route('factures.index', ['search' => 'Martin']));
+
+        $response->assertSee($found->numero_facture);
+        $response->assertDontSee($hidden->numero_facture);
+    }
+
+    /**
      * Vérifie qu'une requête valide crée la facture avec un numéro généré.
      */
     public function test_valid_payload_creates_facture_and_generates_numero(): void

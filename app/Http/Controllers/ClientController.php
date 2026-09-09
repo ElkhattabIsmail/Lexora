@@ -14,8 +14,10 @@ class ClientController extends Controller
     public function index(Request $request): View
     {
         $search = $request->string('search')->trim()->toString();
+        $type = $request->string('type')->trim()->toString();
 
         $clients = Client::query()
+            ->when($type, fn ($q) => $q->where('type', $type))
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
                 $q->where('nom', 'like', "%{$search}%")
                     ->orWhere('prenom', 'like', "%{$search}%")
@@ -26,7 +28,7 @@ class ClientController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('clients.index', compact('clients', 'search'));
+        return view('clients.index', compact('clients', 'search', 'type'));
     }
 
     public function create(): View
