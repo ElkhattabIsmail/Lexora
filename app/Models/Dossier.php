@@ -91,4 +91,16 @@ class Dossier extends Model
     {
         return $this->statut === 'En cours';
     }
+
+    /**
+     * Enregistre une action dans l'historique du dossier.
+     */
+    public function enregistrerAction(string $action, User $user): Historique
+    {
+        return $this->historiques()->create([
+            'action' => $action,
+            'date_action' => now(),
+            'user_id' => $user->id,
+        ]);
+    }
 }

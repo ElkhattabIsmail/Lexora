@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -20,7 +21,11 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.register');
+        $roles = Role::whereIn('nom', ['Avocat', 'Assistant Juridique'])->get();
+
+        return view('auth.register', [
+            'roles' => $roles,
+        ]);
     }
 
     /**
@@ -30,15 +35,36 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // Support graceful fallback if 'name' is provided instead of 'nom' / 'prenom'
+        if ($request->filled('name') && (! $request->filled('nom') || ! $request->filled('prenom'))) {
+            $parts = explode(' ', trim((string) $request->name), 2);
+            $request->merge([
+                'prenom' => $parts[0] ?? '',
+                'nom' => $parts[1] ?? ($parts[0] ?? ''),
+            ]);
+        }
+
+        // Rôle par défaut : Avocat si non spécifié
+        if (! $request->filled('role_id')) {
+            $defaultRole = Role::firstOrCreate(['nom' => 'Avocat']);
+            $request->merge(['role_id' => $defaultRole->id]);
+        }
+
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'nom' => ['required', 'string', 'max:255'],
+            'prenom' => ['required', 'string', 'max:255'],
+            'telephone' => ['nullable', 'string', 'max:50'],
+            'role_id' => ['required', 'exists:roles,id'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user = User::create([
-            'name' => $request->name,
+            'nom' => $request->nom,
+            'prenom' => $request->prenom,
+            'telephone' => $request->telephone,
             'email' => $request->email,
+            'role_id' => $request->role_id,
             'password' => Hash::make($request->password),
         ]);
 

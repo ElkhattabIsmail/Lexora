@@ -112,4 +112,54 @@ class User extends Authenticatable
     {
         return $this->role?->nom === 'Assistant Juridique';
     }
+
+    /**
+     * Vérifie si l'utilisateur possède l'un des rôles spécifiés.
+     *
+     * @param  string|array<string>  $roles
+     */
+    public function hasRole(string|array $roles): bool
+    {
+        $roleName = $this->role?->nom;
+
+        if (! $roleName) {
+            return false;
+        }
+
+        if (is_string($roles)) {
+            $roles = array_map('trim', explode(',', $roles));
+        }
+
+        return in_array($roleName, $roles, true);
+    }
+
+    /**
+     * Nom complet de l'utilisateur.
+     */
+    public function getNomCompletAttribute(): string
+    {
+        return trim("{$this->prenom} {$this->nom}");
+    }
+
+    /**
+     * Compatibilité accessor avec les composants attendant "name".
+     */
+    public function getNameAttribute(): string
+    {
+        return $this->getNomCompletAttribute();
+    }
+
+    /**
+     * Compatibilité mutator pour "name".
+     */
+    public function setNameAttribute(?string $value): void
+    {
+        if (! $value) {
+            return;
+        }
+
+        $parts = explode(' ', trim($value), 2);
+        $this->attributes['prenom'] = $parts[0] ?? '';
+        $this->attributes['nom'] = $parts[1] ?? ($this->attributes['nom'] ?? $parts[0]);
+    }
 }

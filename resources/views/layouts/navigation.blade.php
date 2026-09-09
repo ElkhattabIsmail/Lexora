@@ -15,6 +15,26 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    @if (Auth::user()->hasRole(['Avocat', 'Administrateur']))
+                        <x-nav-link :href="route('clients.index')" :active="request()->routeIs('clients.*')">
+                            {{ __('Clients') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('dossiers.index')" :active="request()->routeIs('dossiers.*')">
+                            {{ __('Dossiers') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('factures.index')" :active="request()->routeIs('factures.*')">
+                            {{ __('Factures') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if(Auth::user()->isAdministrateur())
+                        <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                            {{ __('Gestion des rôles') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -70,6 +90,26 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @if (Auth::user()->hasRole(['Avocat', 'Administrateur']))
+                <x-responsive-nav-link :href="route('clients.index')" :active="request()->routeIs('clients.*')">
+                    {{ __('Clients') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('dossiers.index')" :active="request()->routeIs('dossiers.*')">
+                    {{ __('Dossiers') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('factures.index')" :active="request()->routeIs('factures.*')">
+                    {{ __('Factures') }}
+                </x-responsive-nav-link>
+            @endif
+
+            @if(Auth::user()->isAdministrateur())
+                <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                    {{ __('Gestion des rôles') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

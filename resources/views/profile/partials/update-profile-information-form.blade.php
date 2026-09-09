@@ -17,10 +17,24 @@
         @csrf
         @method('patch')
 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <x-input-label for="nom" :value="__('Nom')" />
+                <x-text-input id="nom" name="nom" type="text" class="mt-1 block w-full" :value="old('nom', $user->nom)" required autofocus autocomplete="family-name" />
+                <x-input-error class="mt-2" :messages="$errors->get('nom')" />
+            </div>
+
+            <div>
+                <x-input-label for="prenom" :value="__('Prénom')" />
+                <x-text-input id="prenom" name="prenom" type="text" class="mt-1 block w-full" :value="old('prenom', $user->prenom)" required autocomplete="given-name" />
+                <x-input-error class="mt-2" :messages="$errors->get('prenom')" />
+            </div>
+        </div>
+
         <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
+            <x-input-label for="telephone" :value="__('Téléphone')" />
+            <x-text-input id="telephone" name="telephone" type="text" class="mt-1 block w-full" :value="old('telephone', $user->telephone)" autocomplete="tel" />
+            <x-input-error class="mt-2" :messages="$errors->get('telephone')" />
         </div>
 
         <div>
