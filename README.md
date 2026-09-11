@@ -1,58 +1,101 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <strong style="font-size: 2rem; font-family: Georgia, serif;">⚖️ Lexora</strong>
 </p>
 
-## About Laravel
+<p align="center">
+  Application web de gestion de cabinet d'avocats — dossiers, audiences, documents, facturation et notifications.
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<p align="center">
+  <img alt="PHP" src="https://img.shields.io/badge/PHP-8.3-777bb4">
+  <img alt="Laravel" src="https://img.shields.io/badge/Laravel-13-f4645f">
+  <img alt="Tailwind" src="https://img.shields.io/badge/Tailwind_CSS-3-38bdf8">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-133%20passed-22c55e">
+  <img alt="Licence" src="https://img.shields.io/badge/licence-MIT-3b82f6">
+</p>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Table des matières
 
-## Learning Laravel
+- [À propos](#à-propos)
+- [Fonctionnalités](#fonctionnalités)
+- [Stack technique](#stack-technique)
+- [Démarrage rapide](#démarrage-rapide)
+- [Documentation](#documentation)
+- [Structure du projet](#structure-du-projet)
+- [Tests](#tests)
+- [Licence](#licence)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## À propos
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+**Lexora** est un logiciel de gestion complet pour un cabinet d'avocats : suivi des dossiers et de leur historique, planification des audiences, gestion documentaire, facturation avec encaissement des paiements, notifications de rappel et administration des utilisateurs.
 
-## Agentic Development
+L'interface est entièrement en français. L'application est construite avec Laravel 13, Tailwind CSS 3, Alpine.js et Vite.
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Fonctionnalités
 
-```bash
-composer require laravel/boost --dev
+Vue d'ensemble rapide :
 
-php artisan boost:install
-```
+- **Tableau de bord** : statistiques en temps réel (dossiers actifs, audiences à venir, clients, revenus du mois, taux de réussite du cabinet, dossiers par mois) et prochaines audiences.
+- **Clients** : création, modification, consultation (particuliers / entreprises), recherche, onglets dossiers et factures.
+- **Dossiers** : gestion complète avec numérotation séquentielle, statuts, archivage, historique horodaté de chaque action et recherche.
+- **Audiences** : planification au sein d'un dossier, statuts (Prévue / Annulée / Terminée).
+- **Documents** : téléversement par dossier, catégorisation et consultation.
+- **Factures** : numérotation séquentielle, suivi du montant restant dû, statut automatiquement synchronisé avec les paiements.
+- **Paiements** : encaissement par mode de paiement, référence facultative, rejet des montants excédentaires.
+- **Notifications** : rappels automatiques d'audience via une commande planifiée.
+- **Administration** : gestion des utilisateurs et de leurs rôles, garde-fou empêchant de rétrograder le dernier administrateur.
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Le détail complet est documenté dans [`docs/features.md`](docs/features.md).
 
-## Contributing
+## Stack technique
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+| Composant  | Technologie                                  |
+| ---------- | -------------------------------------------- |
+| Backend    | PHP 8.3, Laravel 13, Eloquent ORM            |
+| Base de données | MySQL 8 (SQLite pour les tests)          |
+| Frontend   | Tailwind CSS 3, Alpine.js 3, Vite           |
+| Auth       | Laravel Breeze (sessions, vérification e-mail) |
+| Tests      | PHPUnit 12 (133 tests), Laravel Pint        |
+| Console    | Commande `audiences:rappel` planifiable (RG30) |
 
-## Code of Conduct
+## Démarrage rapide
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Prérequis : PHP ≥ 8.3, Composer, Node.js ≥ 20, MySQL 8 (ou SQLite).
 
-## Security Vulnerabilities
+bash
+composer run setup          # installe les dépendances, crée .env, génère la clé,
+                            # migre la base et construit les assets frontend
+php artisan db:seed         # rôles + comptes de démonstration
+php artisan storage:link    # accès aux documents téléversés
+php artisan serve           # démarre le serveur de développement (http://localhost:8000)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
+> Tous les comptes de démonstration partagent le mot de passe `password` (voir [`docs/roles.md`](docs/roles.md)).
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Le guide complet, étape par étape, se trouve dans [`docs/installation.md`](docs/installation.md).
+
+## Documentation
+
+| Sujet                 | Fichier                                       |
+| --------------------- | --------------------------------------------- |
+| Guide d'installation  | [`docs/installation.md`](docs/installation.md) |
+| Fonctionnalités       | [`docs/features.md`](docs/features.md)         |
+| Base de données       | [`docs/database.md`](docs/database.md)         |
+| Architecture          | [`docs/architecture.md`](docs/architecture.md) |
+| Rôles utilisateurs    | [`docs/roles.md`](docs/roles.md)               |
+
+## Structure du projet
+
+Le projet suit les conventions standard de Laravel : routes dans `routes/web.php`, contrôleurs dans `app/Http/Controllers`, modèles Eloquent dans `app/Models`, migrations et factories dans `database/`, vues Blade + Alpine dans `resources/views`. Les spécificités du projet (middleware de rôle, règle `EstAvocat`, trait de numérotation, commande de rappel) sont décrites dans [`docs/architecture.md`](docs/architecture.md).
+
+## Tests
+
+La suite de tests couvre les règles métier, les CRUD, la sécurité par rôles, l'ergonomie, le schéma de base de données et la détection des requêtes N+1.
+
+bash
+php artisan test         # 133 tests, 404 assertions
+vendor/bin/pint          # formatage du code (Laravel Pint)
