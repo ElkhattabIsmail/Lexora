@@ -17,7 +17,7 @@
         </div>
     </x-slot>
 
-    <div class="py-8">
+    <div class="py-6 sm:py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             <!-- Flash messages -->
@@ -41,45 +41,47 @@
 
             <!-- Filtres et recherche -->
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
-                <form method="GET" action="{{ route('admin.users.index') }}" class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
-                    <div class="sm:col-span-6 md:col-span-5">
-                        <label for="search" class="block text-xs font-medium uppercase tracking-wider text-slate-500 mb-1">Recherche</label>
-                        <div class="relative">
-                            <input type="text" id="search" name="search" value="{{ request('search') }}" placeholder="Nom, prénom ou email..." class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-brand-DEFAULT focus:ring-brand-DEFAULT/20 transition-colors" />
-                            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
+                <form method="GET" action="{{ route('admin.users.index') }}" class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
+                        <div class="sm:col-span-6 md:col-span-5">
+                            <label for="search" class="block text-xs font-medium uppercase tracking-wider text-slate-500 mb-1">Recherche</label>
+                            <div class="relative">
+                                <input type="text" id="search" name="search" value="{{ request('search') }}" placeholder="Nom, prénom ou email..." class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-brand-DEFAULT focus:ring-brand-DEFAULT/20 transition-colors" />
+                                <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="sm:col-span-4 md:col-span-4">
-                        <label for="filter_role" class="block text-xs font-medium uppercase tracking-wider text-slate-500 mb-1">Filtrer par rôle</label>
-                        <select id="filter_role" name="role_id" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-brand-DEFAULT focus:ring-brand-DEFAULT/20 transition-colors">
-                            <option value="">Tous les rôles</option>
-                            @foreach ($roles as $role)
-                                <option value="{{ $role->id }}" {{ request('role_id') == $role->id ? 'selected' : '' }}>
-                                    {{ $role->nom }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                        <div class="sm:col-span-4 md:col-span-4">
+                            <label for="filter_role" class="block text-xs font-medium uppercase tracking-wider text-slate-500 mb-1">Filtrer par rôle</label>
+                            <select id="filter_role" name="role_id" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-brand-DEFAULT focus:ring-brand-DEFAULT/20 transition-colors">
+                                <option value="">Tous les rôles</option>
+                                @foreach ($roles as $role)
+                                    <option value="{{ $role->id }}" {{ request('role_id') == $role->id ? 'selected' : '' }}>
+                                        {{ $role->nom }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                    <div class="sm:col-span-2 md:col-span-3 flex gap-2">
-                        <button type="submit" class="w-full py-2 px-4 bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
-                            Filtrer
-                        </button>
-                        @if(request()->hasAny(['search', 'role_id']))
-                            <a href="{{ route('admin.users.index') }}" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-xl transition-colors">
-                                Réinitialiser
-                            </a>
-                        @endif
+                        <div class="sm:col-span-2 md:col-span-3 flex gap-2">
+                            <button type="submit" class="w-full py-2 px-4 bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
+                                Filtrer
+                            </button>
+                            @if(request()->hasAny(['search', 'role_id']))
+                                <a href="{{ route('admin.users.index') }}" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-xl transition-colors">
+                                    Réinitialiser
+                                </a>
+                            @endif
+                        </div>
                     </div>
                 </form>
             </div>
 
-            <!-- Liste des utilisateurs -->
+            <!-- Desktop Table -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-                <div class="overflow-x-auto">
+                <div class="hidden md:block overflow-x-auto">
                     <table class="min-w-full divide-y divide-slate-200">
                         <thead class="bg-slate-50/75">
                             <tr>
@@ -155,6 +157,57 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+
+                {{-- Mobile Cards --}}
+                <div class="md:hidden divide-y divide-slate-100">
+                    @forelse ($users as $u)
+                        <div class="p-4 hover:bg-slate-50/50 transition-colors">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-sm text-slate-700 shrink-0">
+                                    {{ mb_substr($u->prenom, 0, 1) }}{{ mb_substr($u->nom, 0, 1) }}
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="font-semibold text-slate-900 truncate">{{ $u->nom_complet }}</div>
+                                    <div class="text-xs text-slate-500 truncate">{{ $u->email }}</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 mb-3">
+                                @if($u->isAdministrateur())
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">
+                                        Administrateur
+                                    </span>
+                                @elseif($u->isAvocat())
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                                        Avocat
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                        Assistant Juridique
+                                    </span>
+                                @endif
+                                <span class="text-xs text-slate-400">{{ $u->created_at ? $u->created_at->format('d/m/Y') : '-' }}</span>
+                            </div>
+                            <form method="POST" action="{{ route('admin.users.update-role', $u) }}" class="flex items-center gap-2">
+                                @csrf
+                                @method('PATCH')
+                                <select name="role_id" class="flex-1 text-xs py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg focus:border-brand-DEFAULT focus:ring-brand-DEFAULT/20">
+                                    @foreach ($roles as $role)
+                                        <option value="{{ $role->id }}" {{ $u->role_id === $role->id ? 'selected' : '' }}>
+                                            {{ $role->nom }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <button type="submit" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium rounded-lg transition-colors">
+                                    Changer
+                                </button>
+                            </form>
+                        </div>
+                    @empty
+                        <div class="px-6 py-12 text-center text-slate-400 text-sm">
+                            Aucun utilisateur trouvé correspondant aux critères de recherche.
+                        </div>
+                    @endforelse
                 </div>
 
                 @if ($users->hasPages())

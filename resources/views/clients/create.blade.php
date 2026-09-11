@@ -10,8 +10,8 @@
         </div>
     </x-slot>
 
-    <div class="py-12 bg-slate-50 min-h-screen">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6 sm:py-12 bg-slate-50 min-h-screen">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <form action="{{ route('clients.store') }}" method="POST">
                     @csrf
@@ -90,7 +90,7 @@
                     </div>
 
                     {{-- Form Actions --}}
-                    <div class="px-8 py-5 bg-slate-50 border-t border-slate-100 flex justify-end gap-3 rounded-b-2xl">
+                    <div class="px-4 sm:px-8 py-5 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row justify-end gap-3 rounded-b-2xl">
                         <a href="{{ route('clients.index') }}" class="px-6 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm">
                             Annuler
                         </a>

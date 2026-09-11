@@ -11,8 +11,8 @@
         </div>
     </x-slot>
 
-    <div class="py-12 bg-slate-50 min-h-screen">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6 sm:py-12 bg-slate-50 min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <!-- KPIs -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -86,6 +86,7 @@
                     <div class="text-sm text-slate-400 mb-2">dossiers gagnés</div>
                     <div class="text-sm text-slate-400">Total clients : {{ number_format($stats['total_clients']) }}</div>
                     <div class="mt-auto w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+<!--                         This is cleaner because Blade generates the CSS for you. -->     
                         <div class="bg-purple-500 h-1.5 rounded-full" @style(['width' => $stats['taux_reussite'] . '%'])></div>
                     </div>
                 </div>
@@ -205,4 +206,4 @@
 
         </div>
     </div>
-</x-app-layout
+</x-app-layout>

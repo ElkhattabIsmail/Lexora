@@ -6,6 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
+        
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -34,9 +35,20 @@
 
                     <!-- Page Content -->
                     <main>
-                        @if (session('success') || session('error'))
+                        @if (session('success') || session('error') || $errors->any())
                             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
                                 <x-flash-messages />
+
+                                @if ($errors->any())
+                                    <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                                        <p class="font-medium mb-1">Veuillez corriger les erreurs suivantes :</p>
+                                        <ul class="list-disc list-inside space-y-0.5">
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
                             </div>
                         @endif
 
