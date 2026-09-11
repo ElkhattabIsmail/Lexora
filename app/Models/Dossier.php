@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -74,6 +75,18 @@ class Dossier extends Model
     public function historiques(): HasMany
     {
         return $this->hasMany(Historique::class);
+    }
+
+    /**
+     * Récupère les dossiers correspondant à une recherche (numéro, type d'affaire ou client).
+     */
+    public function scopeRecherche(Builder $query, string $search): Builder
+    {
+        return $query->where(function (Builder $query) use ($search) {
+            $query->where('numero_dossier', 'like', "%{$search}%")
+                ->orWhere('type_affaire', 'like', "%{$search}%")
+                ->orWhereHas('client', fn (Builder $q) => $q->recherche($search));
+        });
     }
 
     /**

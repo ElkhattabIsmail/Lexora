@@ -85,8 +85,7 @@
                     </div>
                     <div class="text-sm text-slate-400 mb-2">dossiers gagnés</div>
                     <div class="text-sm text-slate-400">Total clients : {{ number_format($stats['total_clients']) }}</div>
-                    <div class="mt-auto w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
-<!--                         This is cleaner because Blade generates the CSS for you. -->     
+                    <div class="mt-auto w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                         <div class="bg-purple-500 h-1.5 rounded-full" @style(['width' => $stats['taux_reussite'] . '%'])></div>
                     </div>
                 </div>

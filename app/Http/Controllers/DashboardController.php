@@ -25,10 +25,10 @@ class DashboardController extends Controller
                 ->whereYear('date_facture', Carbon::now()->year)
                 ->sum('montant'),
             'taux_reussite' => $closedDossiers > 0 ? (int) round(($wonDossiers / $closedDossiers) * 100) : 0,
-            'dossiers_par_mois' => Dossier::whereYear('date_ouverture', Carbon::now()->year)
-                ->get()
-                ->groupBy(fn (Dossier $dossier) => $dossier->date_ouverture?->format('n'))
-                ->map->count(),
+            'dossiers_par_mois' => Dossier::query()
+                ->whereYear('date_ouverture', Carbon::now()->year)
+                ->get(['date_ouverture'])
+                ->countBy(fn (Dossier $dossier) => (int) $dossier->date_ouverture?->format('n')),
             'prochaines_audiences' => Audience::with(['dossier.client', 'avocat'])
                 ->where('statut', 'Prévue')
                 ->where('date', '>=', Carbon::today())

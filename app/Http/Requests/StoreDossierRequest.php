@@ -2,8 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Models\User;
-use Closure;
+use App\Rules\EstAvocat;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -23,18 +22,7 @@ class StoreDossierRequest extends FormRequest
             'type_affaire' => ['required', 'string', 'max:255'],
             'statut' => ['required', 'in:En cours,Gagné,Perdu,Fermé'],
             'client_id' => ['required', 'exists:clients,id'],
-            'avocat_id' => [
-                'required',
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    $estAvocat = User::whereKey($value)
-                        ->whereHas('role', fn ($q) => $q->where('nom', 'Avocat'))
-                        ->exists();
-
-                    if (! $estAvocat) {
-                        $fail('L\'avocat sélectionné n\'existe pas ou ne possède pas le rôle Avocat.');
-                    }
-                },
-            ],
+            'avocat_id' => ['required', new EstAvocat],
             'date_ouverture' => ['required', 'date'],
             'date_fermeture' => ['nullable', 'date', 'after_or_equal:date_ouverture', 'required_if:statut,Fermé'],
         ];

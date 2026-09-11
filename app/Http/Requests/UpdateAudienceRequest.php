@@ -2,8 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Models\User;
-use Closure;
+use App\Rules\EstAvocat;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -25,18 +24,7 @@ class UpdateAudienceRequest extends FormRequest
             'tribunal' => ['required', 'string', 'max:255'],
             'statut' => ['required', 'in:Prévue,Annulée,Terminée'],
             'observations' => ['nullable', 'string', 'max:2000'],
-            'avocat_id' => [
-                'required',
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    $estAvocat = User::whereKey($value)
-                        ->whereHas('role', fn ($q) => $q->where('nom', 'Avocat'))
-                        ->exists();
-
-                    if (! $estAvocat) {
-                        $fail('L\'avocat sélectionné n\'existe pas ou ne possède pas le rôle Avocat.');
-                    }
-                },
-            ],
+            'avocat_id' => ['required', new EstAvocat],
         ];
     }
 

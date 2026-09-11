@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,6 +51,18 @@ class Facture extends Model
     }
 
     /**
+     * Récupère les factures correspondant à une recherche (numéro, dossier ou client).
+     */
+    public function scopeRecherche(Builder $query, string $search): Builder
+    {
+        return $query->where(function (Builder $query) use ($search) {
+            $query->where('numero_facture', 'like', "%{$search}%")
+                ->orWhereHas('dossier', fn (Builder $q) => $q->where('numero_dossier', 'like', "%{$search}%"))
+                ->orWhereHas('client', fn (Builder $q) => $q->recherche($search));
+        });
+    }
+
+    /**
      * Vérifie si la facture est payée.
      */
     public function isPayee(): bool
@@ -62,8 +75,26 @@ class Facture extends Model
      */
     public function getMontantRestantAttribute(): float
     {
-        $totalPaye = $this->paiements()->sum('montant');
+        if (array_key_exists('paiements_sum_montant', $this->attributes)) {
+            $totalPaye = (float) $this->paiements_sum_montant;
+        } elseif ($this->relationLoaded('paiements')) {
+            $totalPaye = (float) $this->paiements->sum('montant');
+        } else {
+            $totalPaye = (float) $this->paiements()->sum('montant');
+        }
 
-        return max(0, (float) $this->montant - (float) $totalPaye);
+        return max(0, (float) $this->montant - $totalPaye);
+    }
+
+    /**
+     * Synchronise le statut de la facture selon le solde restant dû.
+     */
+    public function synchroniserStatut(): void
+    {
+        $totalPaye = (float) $this->paiements()->sum('montant');
+
+        $this->update([
+            'statut' => (float) $this->montant - $totalPaye <= 0 ? 'Payée' : 'Non payée',
+        ]);
     }
 }

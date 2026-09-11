@@ -8,13 +8,14 @@ use App\Models\Audience;
 use App\Models\Dossier;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AudienceController extends Controller
 {
     public function create(Dossier $dossier): View
     {
-        $avocats = User::whereHas('role', fn ($q) => $q->where('nom', 'Avocat'))->get();
+        $avocats = User::avocats()->get();
 
         return view('audiences.create', compact('dossier', 'avocats'));
     }
@@ -35,7 +36,7 @@ class AudienceController extends Controller
 
     public function edit(Dossier $dossier, Audience $audience): View
     {
-        $avocats = User::whereHas('role', fn ($q) => $q->where('nom', 'Avocat'))->get();
+        $avocats = User::avocats()->get();
 
         return view('audiences.edit', compact('dossier', 'audience', 'avocats'));
     }
@@ -54,11 +55,11 @@ class AudienceController extends Controller
             ->with('success', 'L\'audience a été mise à jour.');
     }
 
-    public function destroy(Dossier $dossier, Audience $audience): RedirectResponse
+    public function destroy(Request $request, Dossier $dossier, Audience $audience): RedirectResponse
     {
         $dossier->enregistrerAction(
             "Audience supprimée : {$audience->tribunal}",
-            request()->user(),
+            $request->user(),
         );
 
         $audience->delete();

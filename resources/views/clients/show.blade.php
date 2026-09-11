@@ -73,19 +73,23 @@
 
                 {{-- Right: Tabs --}}
                 <div class="lg:col-span-2">
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden" x-data="{ onglet: 'dossiers' }">
                         {{-- Tab nav --}}
                         <div class="border-b border-slate-100 px-6 pt-4 flex gap-6">
-                            <button class="pb-3 border-b-2 border-brand-DEFAULT text-brand-DEFAULT font-medium text-sm">
+                            <button type="button" @click="onglet = 'dossiers'"
+                                    :class="onglet === 'dossiers' ? 'border-brand-DEFAULT text-brand-DEFAULT' : 'border-transparent text-slate-500 hover:text-slate-700'"
+                                    class="pb-3 border-b-2 font-medium text-sm transition-colors">
                                 Dossiers ({{ $client->dossiers->count() }})
                             </button>
-                            <button class="pb-3 border-b-2 border-transparent text-slate-500 font-medium text-sm">
+                            <button type="button" @click="onglet = 'factures'"
+                                    :class="onglet === 'factures' ? 'border-brand-DEFAULT text-brand-DEFAULT' : 'border-transparent text-slate-500 hover:text-slate-700'"
+                                    class="pb-3 border-b-2 font-medium text-sm transition-colors">
                                 Factures ({{ $client->factures->count() }})
                             </button>
                         </div>
 
                         {{-- Dossiers list --}}
-                        <div class="p-6">
+                        <div class="p-6" x-show="onglet === 'dossiers'">
                             <div class="space-y-4">
                                 @forelse ($client->dossiers as $dossier)
                                     <a href="{{ route('dossiers.show', $dossier) }}" class="block p-5 border border-slate-100 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all group">
@@ -113,6 +117,37 @@
                                     <div class="text-center py-10 text-slate-400">
                                         <svg class="w-10 h-10 mx-auto mb-3 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                         <p class="text-sm">Aucun dossier pour ce client.</p>
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
+
+                        {{-- Factures list --}}
+                        <div class="p-6" x-show="onglet === 'factures'" x-cloak>
+                            <div class="space-y-4">
+                                @forelse ($client->factures as $facture)
+                                    <a href="{{ route('factures.show', $facture) }}" class="block p-5 border border-slate-100 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all group">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div class="flex items-center gap-3">
+                                                <span class="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md text-xs font-bold">{{ $facture->numero_facture }}</span>
+                                                <h4 class="font-bold text-slate-900 group-hover:text-brand-DEFAULT transition-colors">Facture</h4>
+                                            </div>
+                                            <x-status-badge :statut="$facture->statut" />
+                                        </div>
+                                        <div class="flex gap-4 text-xs text-slate-400 mt-2">
+                                            <div class="flex items-center gap-1">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                                Émise le {{ $facture->date_facture?->format('d M Y') }}
+                                            </div>
+                                            <div class="flex items-center gap-1 font-semibold text-slate-600">
+                                                {{ number_format($facture->montant, 2, ',', ' ') }} €
+                                            </div>
+                                        </div>
+                                    </a>
+                                @empty
+                                    <div class="text-center py-10 text-slate-400">
+                                        <svg class="w-10 h-10 mx-auto mb-3 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <p class="text-sm">Aucune facture pour ce client.</p>
                                     </div>
                                 @endforelse
                             </div>

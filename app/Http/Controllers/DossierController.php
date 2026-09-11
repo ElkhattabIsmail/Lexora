@@ -7,12 +7,15 @@ use App\Http\Requests\UpdateDossierRequest;
 use App\Models\Client;
 use App\Models\Dossier;
 use App\Models\User;
+use App\Traits\GeneratesSequentialReference;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DossierController extends Controller
 {
+    use GeneratesSequentialReference;
+
     public function index(Request $request): View
     {
         $statut = $request->string('statut')->trim()->toString();
@@ -23,19 +26,12 @@ class DossierController extends Controller
             ->with(['client', 'avocat'])
             ->when($statut, fn ($q) => $q->where('statut', $statut))
             ->when($avocatId, fn ($q) => $q->where('avocat_id', $avocatId))
-            ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
-                $q->where('numero_dossier', 'like', "%{$search}%")
-                    ->orWhere('type_affaire', 'like', "%{$search}%")
-                    ->orWhereHas('client', fn ($q) => $q->where(fn ($q) => $q
-                        ->where('nom', 'like', "%{$search}%")
-                        ->orWhere('prenom', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")));
-            }))
+            ->when($search, fn ($q) => $q->recherche($search))
             ->latest()
             ->paginate(15)
             ->withQueryString();
 
-        $avocats = User::whereHas('role', fn ($q) => $q->where('nom', 'Avocat'))->get();
+        $avocats = User::avocats()->get();
 
         return view('dossiers.index', compact('dossiers', 'avocats', 'statut', 'avocatId', 'search'));
     }
@@ -43,7 +39,7 @@ class DossierController extends Controller
     public function create(): View
     {
         $clients = Client::orderBy('nom')->get();
-        $avocats = User::whereHas('role', fn ($q) => $q->where('nom', 'Avocat'))->get();
+        $avocats = User::avocats()->get();
 
         return view('dossiers.create', compact('clients', 'avocats'));
     }
@@ -51,7 +47,7 @@ class DossierController extends Controller
     public function store(StoreDossierRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $data['numero_dossier'] = $this->generateNumeroDossier();
+        $data['numero_dossier'] = $this->generateSequentialReference(Dossier::class, 'DOS');
 
         $dossier = Dossier::create($data);
         $dossier->enregistrerAction("Dossier ouvert : {$dossier->numero_dossier}", $request->user());
@@ -78,7 +74,7 @@ class DossierController extends Controller
     public function edit(Dossier $dossier): View
     {
         $clients = Client::orderBy('nom')->get();
-        $avocats = User::whereHas('role', fn ($q) => $q->where('nom', 'Avocat'))->get();
+        $avocats = User::avocats()->get();
 
         return view('dossiers.edit', compact('dossier', 'clients', 'avocats'));
     }
@@ -110,17 +106,5 @@ class DossierController extends Controller
         return redirect()
             ->route('dossiers.index')
             ->with('success', 'Le dossier a été supprimé.');
-    }
-
-    /**
-     * Génère un numéro de dossier unique au format DOS-YYYY-XXXXX.
-     */
-    private function generateNumeroDossier(): string
-    {
-        $year = now()->year;
-        $last = Dossier::whereYear('created_at', $year)->max('id') ?? 0;
-        $sequence = str_pad($last + 1, 5, '0', STR_PAD_LEFT);
-
-        return "DOS-{$year}-{$sequence}";
     }
 }

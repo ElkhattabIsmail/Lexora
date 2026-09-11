@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -37,6 +38,18 @@ class Client extends Model
     public function factures(): HasMany
     {
         return $this->hasMany(Facture::class);
+    }
+
+    /**
+     * Récupère les clients correspondant à une recherche (nom, prénom ou email).
+     */
+    public function scopeRecherche(Builder $query, string $search): Builder
+    {
+        return $query->where(function (Builder $query) use ($search) {
+            $query->where('nom', 'like', "%{$search}%")
+                ->orWhere('prenom', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%");
+        });
     }
 
     /**

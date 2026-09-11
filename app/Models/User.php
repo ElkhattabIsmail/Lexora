@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -103,6 +104,29 @@ class User extends Authenticatable
     public function isAvocat(): bool
     {
         return $this->role?->nom === 'Avocat';
+    }
+
+    /**
+     * Récupère tous les utilisateurs ayant le rôle Avocat.
+     */
+    public static function avocats(): Builder
+    {
+        return static::query()
+            ->whereHas('role', fn ($q) => $q->where('nom', 'Avocat'))
+            ->orderBy('nom')
+            ->orderBy('prenom');
+    }
+
+    /**
+     * Récupère les utilisateurs correspondant à une recherche (nom, prénom ou email).
+     */
+    public function scopeRecherche(Builder $query, string $search): Builder
+    {
+        return $query->where(function (Builder $query) use ($search) {
+            $query->where('nom', 'like', "%{$search}%")
+                ->orWhere('prenom', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%");
+        });
     }
 
     /**

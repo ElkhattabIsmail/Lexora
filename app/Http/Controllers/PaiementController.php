@@ -15,15 +15,14 @@ class PaiementController extends Controller
      */
     public function store(StorePaiementRequest $request, Facture $facture): RedirectResponse
     {
-        $facture->paiements()->create($request->validated());
+        $data = $request->validated();
 
-        if ((float) $facture->montant_restant <= 0 && ! $facture->isPayee()) {
-            $facture->update(['statut' => 'Payée']);
-        }
+        $facture->paiements()->create($data);
+        $facture->synchroniserStatut();
 
         if ($facture->dossier) {
             $facture->dossier->enregistrerAction(
-                "Paiement enregistré de {$request->montant} € sur la facture {$facture->numero_facture}",
+                "Paiement enregistré de {$data['montant']} € sur la facture {$facture->numero_facture}",
                 $request->user(),
             );
         }
@@ -37,15 +36,14 @@ class PaiementController extends Controller
      */
     public function destroy(Request $request, Facture $facture, Paiement $paiement): RedirectResponse
     {
-        $paiement->delete();
+        $montant = $paiement->montant;
 
-        if ($facture->isPayee() && (float) $facture->montant_restant > 0) {
-            $facture->update(['statut' => 'Non payée']);
-        }
+        $paiement->delete();
+        $facture->synchroniserStatut();
 
         if ($facture->dossier) {
             $facture->dossier->enregistrerAction(
-                "Paiement de {$paiement->montant} € supprimé de la facture {$facture->numero_facture}",
+                "Paiement de {$montant} € supprimé de la facture {$facture->numero_facture}",
                 $request->user(),
             );
         }

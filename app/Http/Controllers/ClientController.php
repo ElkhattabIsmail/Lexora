@@ -18,11 +18,7 @@ class ClientController extends Controller
 
         $clients = Client::query()
             ->when($type, fn ($q) => $q->where('type', $type))
-            ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
-                $q->where('nom', 'like', "%{$search}%")
-                    ->orWhere('prenom', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
-            }))
+            ->when($search, fn ($q) => $q->recherche($search))
             ->withCount('dossiers')
             ->latest()
             ->paginate(15)
