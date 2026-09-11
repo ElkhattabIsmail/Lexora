@@ -13,8 +13,9 @@ class DashboardController extends Controller
 {
     public function index(): View
     {
-        $closedDossiers = Dossier::whereIn('statut', ['Gagné', 'Perdu', 'Fermé'])->count();
-        $wonDossiers = Dossier::where('statut', 'Gagné')->count();
+        $statutsClos = Dossier::whereIn('statut', ['Gagné', 'Perdu', 'Fermé'])
+            ->selectRaw('COUNT(*) as total, SUM(CASE WHEN statut = ? THEN 1 ELSE 0 END) as gagnes', ['Gagné'])
+            ->first();
 
         $stats = [
             'dossiers_actifs' => Dossier::where('statut', 'En cours')->where('archive', false)->count(),
@@ -24,11 +25,13 @@ class DashboardController extends Controller
                 ->whereMonth('date_facture', Carbon::now()->month)
                 ->whereYear('date_facture', Carbon::now()->year)
                 ->sum('montant'),
-            'taux_reussite' => $closedDossiers > 0 ? (int) round(($wonDossiers / $closedDossiers) * 100) : 0,
+            'taux_reussite' => $statutsClos->total > 0
+                ? (int) round(((float) $statutsClos->gagnes / (float) $statutsClos->total) * 100)
+                : 0,
             'dossiers_par_mois' => Dossier::query()
                 ->whereYear('date_ouverture', Carbon::now()->year)
-                ->get(['date_ouverture'])
-                ->countBy(fn (Dossier $dossier) => (int) $dossier->date_ouverture?->format('n')),
+                ->pluck('date_ouverture')
+                ->countBy(fn (string $date) => (int) substr((string) $date, 5, 2)),
             'prochaines_audiences' => Audience::with(['dossier.client', 'avocat'])
                 ->where('statut', 'Prévue')
                 ->where('date', '>=', Carbon::today())

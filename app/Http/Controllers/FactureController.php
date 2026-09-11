@@ -47,7 +47,7 @@ class FactureController extends Controller
 
         $facture = Facture::create($data);
 
-        if ($facture->dossier) {
+        if ($facture->loadMissing('dossier')->dossier) {
             $facture->dossier->enregistrerAction(
                 "Facture émise : {$facture->numero_facture} de {$facture->montant} €",
                 $request->user(),

@@ -20,7 +20,7 @@ class PaiementController extends Controller
         $facture->paiements()->create($data);
         $facture->synchroniserStatut();
 
-        if ($facture->dossier) {
+        if ($facture->loadMissing('dossier')->dossier) {
             $facture->dossier->enregistrerAction(
                 "Paiement enregistré de {$data['montant']} € sur la facture {$facture->numero_facture}",
                 $request->user(),
@@ -41,7 +41,7 @@ class PaiementController extends Controller
         $paiement->delete();
         $facture->synchroniserStatut();
 
-        if ($facture->dossier) {
+        if ($facture->loadMissing('dossier')->dossier) {
             $facture->dossier->enregistrerAction(
                 "Paiement de {$montant} € supprimé de la facture {$facture->numero_facture}",
                 $request->user(),

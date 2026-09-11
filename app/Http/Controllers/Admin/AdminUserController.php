@@ -44,7 +44,7 @@ class AdminUserController extends Controller
         $newRole = Role::findOrFail($request->role_id);
 
         // Sécurité : Empêcher de rétrograder le dernier administrateur du cabinet
-        if ($user->isAdministrateur() && $newRole->nom !== 'Administrateur') {
+        if ($user->loadMissing('role')->isAdministrateur() && $newRole->nom !== 'Administrateur') {
             $adminCount = User::whereHas('role', fn ($q) => $q->where('nom', 'Administrateur'))->count();
             if ($adminCount <= 1) {
                 return back()->withErrors([
