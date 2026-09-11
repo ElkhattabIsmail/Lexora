@@ -35,7 +35,7 @@ class RappelAudiences extends Command
             ->whereBetween('date', [now()->startOfDay(), $cible])
             ->get();
 
-        $notificationsCreees = 0;
+        $candidats = [];
 
         foreach ($audiences as $audience) {
             if (! $audience->avocat_id || ! $audience->dossier) {
@@ -46,23 +46,38 @@ class RappelAudiences extends Command
                 .$audience->date->format('d/m/Y')." à {$audience->heure} "
                 ."pour le dossier {$audience->dossier->numero_dossier}.";
 
-            $existe = Notification::where('user_id', $audience->avocat_id)
-                ->where('message', $message)
-                ->where('lu', false)
-                ->exists();
-
-            if ($existe) {
-                continue;
-            }
-
-            Notification::create([
+            $candidats[] = [
                 'titre' => 'Audience à venir',
                 'message' => $message,
                 'type' => 'Audience',
                 'lu' => false,
                 'user_id' => $audience->avocat_id,
+            ];
+        }
+
+        if ($candidats === []) {
+            $this->info("0 notification(s) de rappel d'audience générée(s).");
+
+            return;
+        }
+
+        $dejaEnvoyes = Notification::query()
+            ->where('lu', false)
+            ->whereIn('user_id', array_column($candidats, 'user_id'))
+            ->whereIn('message', array_column($candidats, 'message'))
+            ->get(['user_id', 'message'])
+            ->mapWithKeys(fn (Notification $notification) => [
+                $notification->user_id.'|'.$notification->message => true,
             ]);
 
+        $notificationsCreees = 0;
+
+        foreach ($candidats as $candidat) {
+            if ($dejaEnvoyes->has($candidat['user_id'].'|'.$candidat['message'])) {
+                continue;
+            }
+
+            Notification::create($candidat);
             $notificationsCreees++;
         }
 
