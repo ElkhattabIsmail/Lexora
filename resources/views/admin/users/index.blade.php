@@ -66,11 +66,11 @@
                         </div>
 
                         <div class="sm:col-span-2 md:col-span-3 flex gap-2">
-                            <button type="submit" class="w-full py-2 px-4 bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
+                            <button type="submit" class="btn-dark w-full">
                                 Filtrer
                             </button>
                             @if(request()->hasAny(['search', 'role_id']))
-                                <a href="{{ route('admin.users.index') }}" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-xl transition-colors">
+                                <a href="{{ route('admin.users.index') }}" class="btn-ghost-light py-2">
                                     Réinitialiser
                                 </a>
                             @endif
@@ -139,7 +139,7 @@
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            <button type="submit" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium rounded-lg transition-colors">
+                                            <button type="submit" class="btn-dark px-3 py-1.5 text-xs">
                                                 Changer
                                             </button>
                                         </form>
@@ -198,7 +198,7 @@
                                         </option>
                                     @endforeach
                                 </select>
-                                <button type="submit" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium rounded-lg transition-colors">
+                                <button type="submit" class="btn-dark px-4 py-2 text-xs">
                                     Changer
                                 </button>
                             </form>

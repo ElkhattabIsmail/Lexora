@@ -14,7 +14,7 @@
                 <p class="mt-2 text-slate-500 max-w-md mx-auto">
                     La ressource demandée n'existe pas ou a été déplacée.
                 </p>
-                <a href="{{ url('/') }}" class="mt-8 inline-block px-5 py-2.5 bg-brand-DEFAULT text-white rounded-lg text-sm font-medium hover:bg-brand-dark transition-colors shadow-sm">
+                <a href="{{ url('/') }}" class="btn-primary inline-block mt-8">
                     Retour à l'accueil
                 </a>
             </div>

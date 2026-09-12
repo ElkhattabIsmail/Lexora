@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center gap-4">
-            <a href="{{ route('clients.index') }}" class="text-slate-400 hover:text-brand-DEFAULT transition-colors">
+            <a href="{{ route('clients.index') }}" class="btn-icon hover:text-brand-DEFAULT hover:bg-brand-50">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
             </a>
             <h2 class="font-serif font-bold text-2xl text-slate-800 leading-tight">
@@ -91,10 +91,10 @@
 
                     {{-- Form Actions --}}
                     <div class="px-4 sm:px-8 py-5 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row justify-end gap-3 rounded-b-2xl">
-                        <a href="{{ route('clients.index') }}" class="px-6 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm">
+                        <a href="{{ route('clients.index') }}" class="btn-secondary">
                             Annuler
                         </a>
-                        <button type="submit" class="px-6 py-2.5 bg-brand-DEFAULT text-white rounded-lg text-sm font-medium hover:bg-brand-dark transition-colors shadow-sm">
+                        <button type="submit" class="btn-primary">
                             Enregistrer le client
                         </button>
                     </div>

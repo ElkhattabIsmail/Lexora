@@ -4,7 +4,7 @@
             <h2 class="font-serif font-bold text-2xl text-slate-800 leading-tight">
                 {{ __('Factures') }}
             </h2>
-            <a href="{{ route('factures.create') }}" class="px-4 py-2 bg-brand-DEFAULT text-white rounded-lg text-sm font-medium hover:bg-brand-dark transition-colors shadow-sm flex items-center gap-2">
+            <a href="{{ route('factures.create') }}" class="btn-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                 <span class="hidden sm:inline">Nouvelle Facture</span>
                 <span class="sm:hidden">Nouvelle</span>
@@ -35,9 +35,9 @@
                             </select>
                         </div>
                         <div class="flex items-center gap-3">
-                            <button type="submit" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm">Filtrer</button>
+                            <button type="submit" class="btn-dark">Filtrer</button>
                             @if ($search || $statut)
-                                <a href="{{ route('factures.index') }}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg transition-colors">
+                                <a href="{{ route('factures.index') }}" class="btn-ghost-light">
                                     Réinitialiser
                                 </a>
                             @endif
@@ -76,15 +76,15 @@
                                         <x-status-badge :statut="$facture->statut" />
                                     </td>
                                     <td class="px-6 py-4 text-right flex items-center justify-end gap-1">
-                                        <a href="{{ route('factures.show', $facture) }}" title="Voir" class="text-slate-400 hover:text-brand-DEFAULT transition-colors p-1">
+                                        <a href="{{ route('factures.show', $facture) }}" title="Voir" class="btn-icon hover:text-brand-DEFAULT hover:bg-brand-50">
                                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                         </a>
-                                        <a href="{{ route('factures.edit', $facture) }}" title="Modifier" class="text-slate-400 hover:text-amber-500 transition-colors p-1">
+                                        <a href="{{ route('factures.edit', $facture) }}" title="Modifier" class="btn-icon hover:text-amber-600 hover:bg-amber-50">
                                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                         </a>
                                         <form method="POST" action="{{ route('factures.destroy', $facture) }}" onsubmit="return confirm('Supprimer cette facture ?')">
                                             @csrf @method('DELETE')
-                                            <button type="submit" title="Supprimer" class="text-slate-400 hover:text-red-500 transition-colors p-1">
+                                            <button type="submit" title="Supprimer" class="btn-icon-danger">
                                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
                                         </form>
@@ -126,15 +126,15 @@
                                     <span class="text-xs text-slate-500 ml-2">{{ $facture->date_facture?->format('d/m/Y') }}</span>
                                 </div>
                                 <div class="flex items-center gap-1">
-                                    <a href="{{ route('factures.show', $facture) }}" class="text-slate-400 hover:text-brand-DEFAULT transition-colors p-1">
+                                    <a href="{{ route('factures.show', $facture) }}" class="btn-icon hover:text-brand-DEFAULT hover:bg-brand-50">
                                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                     </a>
-                                    <a href="{{ route('factures.edit', $facture) }}" class="text-slate-400 hover:text-amber-500 transition-colors p-1">
+                                    <a href="{{ route('factures.edit', $facture) }}" class="btn-icon hover:text-amber-600 hover:bg-amber-50">
                                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                     </a>
                                     <form method="POST" action="{{ route('factures.destroy', $facture) }}" onsubmit="return confirm('Supprimer cette facture ?')">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="text-slate-400 hover:text-red-500 transition-colors p-1">
+                                        <button type="submit" class="btn-icon-danger">
                                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                         </button>
                                     </form>

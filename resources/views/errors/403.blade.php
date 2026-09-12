@@ -14,7 +14,7 @@
                 <p class="mt-2 text-slate-500 max-w-md mx-auto">
                     Vous ne disposez pas des privilèges nécessaires pour accéder à cette ressource.
                 </p>
-                <a href="{{ route('dashboard') }}" class="mt-8 inline-block px-5 py-2.5 bg-brand-DEFAULT text-white rounded-lg text-sm font-medium hover:bg-brand-dark transition-colors shadow-sm">
+                <a href="{{ route('dashboard') }}" class="btn-primary inline-block mt-8">
                     Retour au tableau de bord
                 </a>
             </div>

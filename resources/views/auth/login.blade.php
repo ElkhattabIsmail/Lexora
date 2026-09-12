@@ -47,7 +47,7 @@
         </div>
 
         <div>
-            <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-brand-DEFAULT hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-DEFAULT transition-colors duration-200">
+            <button type="submit" class="btn-primary w-full">
                 Se connecter
             </button>
         </div>

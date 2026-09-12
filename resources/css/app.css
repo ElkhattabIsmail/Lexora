@@ -7,3 +7,75 @@
 [x-cloak] {
     display: none;
 }
+
+@keyframes blob {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+    }
+    33% {
+        transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
+    }
+}
+
+.animate-blob {
+    animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+    animation-delay: 2s;
+}
+
+@layer components {
+    .btn-primary:focus-visible,
+    .btn-secondary:focus-visible,
+    .btn-danger:focus-visible,
+    .btn-success:focus-visible,
+    .btn-dark:focus-visible,
+    .btn-ghost-light:focus-visible,
+    .btn-ghost-dark:focus-visible {
+        @apply outline-none ring-2 ring-offset-2;
+    }
+
+    .btn-primary {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold leading-5 transition-colors duration-150 cursor-pointer select-none bg-brand-700 text-white shadow-sm hover:bg-brand-dark focus-visible:ring-brand-700;
+    }
+
+    .btn-secondary {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold leading-5 transition-colors duration-150 cursor-pointer select-none border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900 focus-visible:ring-slate-300;
+    }
+
+    .btn-danger {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold leading-5 transition-colors duration-150 cursor-pointer select-none bg-red-600 text-white shadow-sm hover:bg-red-700 focus-visible:ring-red-500;
+    }
+
+    .btn-success {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold leading-5 transition-colors duration-150 cursor-pointer select-none bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 focus-visible:ring-emerald-500;
+    }
+
+    .btn-dark {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold leading-5 transition-colors duration-150 cursor-pointer select-none bg-slate-900 text-white shadow-sm hover:bg-slate-800 focus-visible:ring-slate-500;
+    }
+
+    .btn-ghost-light {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold leading-5 transition-colors duration-150 cursor-pointer select-none border border-transparent bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 focus-visible:ring-slate-300;
+    }
+
+    .btn-ghost-dark {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold leading-5 transition-colors duration-150 cursor-pointer select-none border border-white/20 bg-white/5 text-white hover:bg-white/10 hover:border-white/30 focus-visible:ring-white/40;
+    }
+
+    .btn-lg {
+        @apply px-6 py-3 text-base;
+    }
+
+    .btn-icon {
+        @apply inline-flex items-center justify-center rounded-lg p-1.5 text-slate-400 transition-colors duration-150 hover:bg-slate-100 hover:text-slate-600;
+    }
+
+    .btn-icon-danger {
+        @apply inline-flex items-center justify-center rounded-lg p-1.5 text-slate-400 transition-colors duration-150 hover:bg-red-50 hover:text-red-600;
+    }
+}

@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <a href="{{ route('dossiers.index') }}" class="text-slate-400 hover:text-brand-DEFAULT transition-colors">
+                <a href="{{ route('dossiers.index') }}" class="btn-icon hover:text-brand-DEFAULT hover:bg-brand-50">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                 </a>
                 <div>
@@ -11,11 +11,11 @@
                 </div>
             </div>
             <div class="flex gap-3">
-                <a href="{{ route('dossiers.edit', $dossier) }}" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2">
+                <a href="{{ route('dossiers.edit', $dossier) }}" class="btn-secondary">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                     Modifier
                 </a>
-                <a href="{{ route('dossiers.audiences.create', $dossier) }}" class="px-4 py-2 bg-brand-DEFAULT text-white rounded-lg text-sm font-medium hover:bg-brand-dark transition-colors shadow-sm flex items-center gap-2">
+                <a href="{{ route('dossiers.audiences.create', $dossier) }}" class="btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                     Nouvelle Audience
                 </a>
@@ -84,7 +84,7 @@
                                     <input type="file" id="fichier" name="fichier" class="block w-full text-sm text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-DEFAULT hover:file:bg-brand-100 transition-colors">
                                     @error('fichier') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                                 </div>
-                                <button type="submit" class="w-full py-2 bg-brand-DEFAULT text-white rounded-lg text-sm font-medium hover:bg-brand-dark transition-colors">Téléverser</button>
+                                <button type="submit" class="btn-primary w-full">Téléverser</button>
                             </div>
                         </form>
                     </div>
@@ -114,12 +114,12 @@
                                     </div>
                                     <div class="flex items-center gap-3">
                                         <x-status-badge :statut="$audience->statut" />
-                                        <a href="{{ route('dossiers.audiences.edit', [$dossier, $audience]) }}" class="text-slate-400 hover:text-amber-500 transition-colors">
+                                        <a href="{{ route('dossiers.audiences.edit', [$dossier, $audience]) }}" class="btn-icon hover:text-amber-600 hover:bg-amber-50">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                         </a>
                                         <form method="POST" action="{{ route('dossiers.audiences.destroy', [$dossier, $audience]) }}" onsubmit="return confirm('Supprimer cette audience ?')">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="text-slate-400 hover:text-red-500 transition-colors">
+                                            <button type="submit" class="btn-icon-danger">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
                                         </form>
@@ -149,12 +149,12 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <a href="{{ Storage::url($document->chemin) }}" target="_blank" class="text-slate-400 hover:text-brand-DEFAULT transition-colors p-1">
+                                        <a href="{{ Storage::url($document->chemin) }}" target="_blank" class="btn-icon hover:text-brand-DEFAULT hover:bg-brand-50">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                         </a>
                                         <form method="POST" action="{{ route('dossiers.documents.destroy', [$dossier, $document]) }}" onsubmit="return confirm('Supprimer ce document ?')">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="text-slate-400 hover:text-red-500 transition-colors p-1">
+                                            <button type="submit" class="btn-icon-danger">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
                                         </form>

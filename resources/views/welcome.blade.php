@@ -15,26 +15,26 @@
         @vite(['resources/css/app.css'])
     </head>
     <body class="font-sans antialiased bg-slate-900 text-slate-100 min-h-screen flex flex-col">
-        <header class="w-full">
-            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
-                <a href="{{ url('/') }}" class="flex items-center gap-2.5">
-                    <span class="w-9 h-9 rounded-lg bg-brand-DEFAULT flex items-center justify-center">
+        <header class="relative z-20 w-full">
+            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between gap-4">
+                <a href="{{ url('/') }}" class="flex items-center gap-2.5 shrink-0">
+                    <span class="w-9 h-9 rounded-lg bg-brand-DEFAULT flex items-center justify-center shadow-md shadow-brand-DEFAULT/30">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>
                     </span>
                     <span class="font-serif font-bold text-xl text-white tracking-tight">{{ config('app.name', 'Lexora') }}</span>
                 </a>
                 @if (Route::has('login'))
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 sm:gap-3">
                         @auth
-                            <a href="{{ route('dashboard') }}" class="px-4 py-2 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-100 transition-colors">
+                            <a href="{{ route('dashboard') }}" class="btn-secondary">
                                 Tableau de bord
                             </a>
                         @else
-                            <a href="{{ route('login') }}" class="px-4 py-2 bg-brand-DEFAULT text-white rounded-lg text-sm font-medium hover:bg-brand-dark transition-colors">
+                            <a href="{{ route('login') }}" class="btn-primary">
                                 Se connecter
                             </a>
                             @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="px-4 py-2 text-slate-300 rounded-lg text-sm font-medium hover:text-white hover:bg-white/10 transition-colors">
+                                <a href="{{ route('register') }}" class="btn-ghost-dark">
                                     S'inscrire
                                 </a>
                             @endif
@@ -44,8 +44,15 @@
             </nav>
         </header>
 
-        <main class="flex-1">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+        <main class="flex-1 relative overflow-hidden">
+            <!-- Ambient background -->
+            <div class="pointer-events-none absolute inset-0">
+                <div class="absolute inset-0 bg-gradient-to-br from-brand-dark/40 via-transparent to-slate-850"></div>
+                <div class="absolute -top-32 -right-32 w-[34rem] h-[34rem] bg-brand-light/15 rounded-full blur-3xl animate-blob"></div>
+                <div class="absolute top-1/3 -left-40 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+            </div>
+
+            <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
                 <div class="max-w-3xl">
                     <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-500/10 text-gold-400 text-xs font-medium border border-gold-500/20">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
@@ -58,17 +65,17 @@
                         Lexora centralise la gestion de vos clients, dossiers, audiences, documents et factures
                         dans un outil unique, pensé pour les cabinets d'avocats.
                     </p>
-                    <div class="mt-8 flex flex-col sm:flex-row gap-4">
+                    <div class="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
                         @auth
-                            <a href="{{ route('dashboard') }}" class="px-6 py-3 bg-brand-DEFAULT text-white rounded-xl text-sm font-semibold hover:bg-brand-dark transition-colors shadow-lg shadow-brand-DEFAULT/25 text-center">
+                            <a href="{{ route('dashboard') }}" class="btn-primary btn-lg">
                                 Accéder à mon espace
                             </a>
                         @else
-                            <a href="{{ route('login') }}" class="px-6 py-3 bg-brand-DEFAULT text-white rounded-xl text-sm font-semibold hover:bg-brand-dark transition-colors shadow-lg shadow-brand-DEFAULT/25 text-center">
+                            <a href="{{ route('login') }}" class="btn-primary btn-lg shadow-lg shadow-brand-DEFAULT/25">
                                 Commencer maintenant
                             </a>
                             @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="px-6 py-3 bg-white/5 text-slate-100 border border-white/10 rounded-xl text-sm font-semibold hover:bg-white/10 transition-colors text-center">
+                                <a href="{{ route('register') }}" class="btn-ghost-dark btn-lg">
                                     Créer un compte
                                 </a>
                             @endif
@@ -77,21 +84,21 @@
                 </div>
 
                 <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
+                    <div class="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm transition-colors hover:bg-white/[0.07] hover:border-white/20">
                         <div class="w-10 h-10 rounded-lg bg-brand-DEFAULT/20 text-brand-light flex items-center justify-center mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                         </div>
                         <h3 class="font-serif font-bold text-lg text-white">Gestion des dossiers</h3>
                         <p class="mt-2 text-sm text-slate-400">Suivez chaque affaire, son statut, son historique et les avocats responsables.</p>
                     </div>
-                    <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
+                    <div class="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm transition-colors hover:bg-white/[0.07] hover:border-white/20">
                         <div class="w-10 h-10 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         </div>
                         <h3 class="font-serif font-bold text-lg text-white">Audiences & rappels</h3>
                         <p class="mt-2 text-sm text-slate-400">Planifiez vos audiences et recevez des rappels automatiques par email.</p>
                     </div>
-                    <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
+                    <div class="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm transition-colors hover:bg-white/[0.07] hover:border-white/20">
                         <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
@@ -102,7 +109,7 @@
             </div>
         </main>
 
-        <footer class="border-t border-white/5">
+        <footer class="relative z-10 border-t border-white/5">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between text-sm text-slate-500">
                 <span>&copy; {{ date('Y') }} {{ config('app.name', 'Lexora') }} — Tous droits réservés.</span>
                 <span>v{{ app()->version() }}</span>

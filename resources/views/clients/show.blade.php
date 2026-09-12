@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <a href="{{ route('clients.index') }}" class="text-slate-400 hover:text-brand-DEFAULT transition-colors">
+                <a href="{{ route('clients.index') }}" class="btn-icon hover:text-brand-DEFAULT hover:bg-brand-50">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                 </a>
                 <h2 class="font-serif font-bold text-2xl text-slate-800 leading-tight">
@@ -10,11 +10,11 @@
                 </h2>
             </div>
             <div class="flex gap-3">
-                <a href="{{ route('clients.edit', $client) }}" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2">
+                <a href="{{ route('clients.edit', $client) }}" class="btn-secondary">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                     Modifier
                 </a>
-                <a href="{{ route('dossiers.create', ['client_id' => $client->id]) }}" class="px-4 py-2 bg-brand-DEFAULT text-white rounded-lg text-sm font-medium hover:bg-brand-dark transition-colors shadow-sm flex items-center gap-2">
+                <a href="{{ route('dossiers.create', ['client_id' => $client->id]) }}" class="btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                     Nouveau Dossier
                 </a>
