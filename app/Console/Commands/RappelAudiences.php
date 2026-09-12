@@ -2,8 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Audience;
-use App\Models\Notification;
+use App\Jobs\GenererRappelsAudience;
 use Illuminate\Console\Command;
 
 class RappelAudiences extends Command
@@ -28,59 +27,9 @@ class RappelAudiences extends Command
     public function handle(): void
     {
         $horizon = (int) $this->option('horizon');
-        $cible = now()->addDays($horizon)->endOfDay();
 
-        $audiences = Audience::with('dossier')
-            ->where('statut', 'Prévue')
-            ->whereBetween('date', [now()->startOfDay(), $cible])
-            ->get();
+        GenererRappelsAudience::dispatch($horizon);
 
-        $candidats = [];
-
-        foreach ($audiences as $audience) {
-            if (! $audience->avocat_id || ! $audience->dossier) {
-                continue;
-            }
-
-            $message = "Rappel : audience « {$audience->tribunal} » prévue le "
-                .$audience->date->format('d/m/Y')." à {$audience->heure} "
-                ."pour le dossier {$audience->dossier->numero_dossier}.";
-
-            $candidats[] = [
-                'titre' => 'Audience à venir',
-                'message' => $message,
-                'type' => 'Audience',
-                'lu' => false,
-                'user_id' => $audience->avocat_id,
-            ];
-        }
-
-        if ($candidats === []) {
-            $this->info("0 notification(s) de rappel d'audience générée(s).");
-
-            return;
-        }
-
-        $dejaEnvoyes = Notification::query()
-            ->where('lu', false)
-            ->whereIn('user_id', array_column($candidats, 'user_id'))
-            ->whereIn('message', array_column($candidats, 'message'))
-            ->get(['user_id', 'message'])
-            ->mapWithKeys(fn (Notification $notification) => [
-                $notification->user_id.'|'.$notification->message => true,
-            ]);
-
-        $notificationsCreees = 0;
-
-        foreach ($candidats as $candidat) {
-            if ($dejaEnvoyes->has($candidat['user_id'].'|'.$candidat['message'])) {
-                continue;
-            }
-
-            Notification::create($candidat);
-            $notificationsCreees++;
-        }
-
-        $this->info("{$notificationsCreees} notification(s) de rappel d'audience générée(s).");
+        $this->info("Génération des rappels d'audience (horizon : {$horizon} jour(s)) envoyée à la file d'attente.");
     }
 }

@@ -132,9 +132,17 @@ Tous les comptes partagent le mot de passe `password` :
 | Assistant Juridique | assistant.idrissi@lexora.ma  |
 | Assistant Juridique | assistant.chraibi@lexora.ma  |
 
+## Files d'attente et jobs
+
+Les opérations lourdes (téléversement de documents, purge des fichiers à la suppression d'un dossier, génération des rappels) sont déléguées à la file d'attente Laravel. La connexion par défaut est `database` ; un worker doit donc tourner :
+
+```bash
+php artisan queue:work
+```
+
 ## Rappels d'audience (commandes planifiées)
 
-La commande `audiences:rappel` génère une notification avant chaque audience :
+La commande `audiences:rappel` envoie la génération des rappels à la file d'attente (job `GenererRappelsAudience`) :
 
 ```bash
 php artisan audiences:rappel --horizon=3

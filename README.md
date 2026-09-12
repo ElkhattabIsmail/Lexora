@@ -296,9 +296,27 @@ Créés par `php artisan db:seed`. Tous les comptes partagent le mot de passe `p
 | Assistant Juridique | assistant.idrissi@lexora.ma  |
 | Assistant Juridique | assistant.chraibi@lexora.ma  |
 
+## Files d'attente et jobs
+
+Les opérations lourdes sont déléguées à la file d'attente Laravel (connexion `database` par défaut) afin de garder des réponses HTTP rapides. Un worker doit tourner pour traiter ces jobs :
+
+```bash
+php artisan queue:work
+```
+
+Jobs présents dans `app/Jobs` :
+
+| Job                          | Déclencheur                          | Travail effectué |
+| ---------------------------- | ------------------------------------ | ---------------- |
+| `TraiterTeleversementDocument` | Téléversement d'un document          | Déplace le fichier temporaire vers `documents/{dossier}` et enregistre le document + son historique. |
+| `SupprimerDocumentsDossier`   | Suppression d'un dossier             | Purge physiquement les fichiers `documents/{dossier}` et `tmp/{dossier}`. |
+| `GenererRappelsAudience`      | Commande `audiences:rappel`          | Génère les notifications de rappel d'audience. |
+
+En environnement de test, `QUEUE_CONNECTION=sync` exécute les jobs immédiatement.
+
 ## Rappels d'audience
 
-La commande `audiences:rappel` génère une notification avant chaque audience :
+La commande `audiences:rappel` envoie à la file d'attente la génération des rappels avant chaque audience :
 
 ```bash
 php artisan audiences:rappel --horizon=3
@@ -306,6 +324,7 @@ php artisan audiences:rappel --horizon=3
 
 - `--horizon` : nombre de jours avant l'audience pour envoyer le rappel (défaut : 3).
 - Idempotente : une même audience ne reçoit qu'un seul rappel.
+- Le traitement est confié au job `GenererRappelsAudience` (un worker doit tourner).
 - À planifier via le planificateur Laravel (crontab `* * * * * php artisan schedule:run`) ou un système de tâches Cloud.
 
 ## Commandes
@@ -326,11 +345,13 @@ Les commandes nécessaires au fonctionnement et au développement du projet :
 | `php artisan migrate`            | Exécute les migrations (schéma de base). |
 | `php artisan db:seed`            | Peuple la base (rôles, comptes démo, données). |
 | `php artisan storage:link`       | Crée le lien `public/storage` pour les documents. |
+| `php artisan queue:work`         | Traite les jobs en file d'attente (worker). |
+| `php artisan queue:failed`       | Liste les jobs en échec (`queue:retry` / `queue:flush` pour les relancer). |
 | `php artisan audiences:rappel`   | Génère les rappels d'audience (`--horizon=3` jour(s)). |
 | `php artisan optimize:clear`     | Vide les caches (config, route, cache, view…). |
 | `php artisan schedule:list`      | Liste les tâches planifiées. |
 | `php artisan route:list`         | Liste les routes publiées. |
-| `php artisan test`               | Exécute la suite de tests (133 tests PHPUnit). |
+| `php artisan test`               | Exécute la suite de tests (139 tests PHPUnit). |
 | `vendor/bin/pint`                | Formate le code PHP (Laravel Pint). |
 
 ## Routes de l'application
@@ -636,6 +657,9 @@ app/
 │   │   └── Auth/                           # contrôleurs Breeze
 │   ├── Middleware/CheckRole.php            # middleware « role » (alias)
 │   └── Requests/                           # Form Requests (validation métier)
+├── Jobs/                                   # TraiterTeleversementDocument,
+│   │                                       # SupprimerDocumentsDossier,
+│   │                                       # GenererRappelsAudience
 ├── Models/                                 # 10 modèles Eloquent
 ├── Providers/AppServiceProvider.php        # preventLazyLoading + chargement du rôle
 ├── Rules/EstAvocat.php                     # règle de validation « l'utilisateur est avocat »
@@ -709,7 +733,7 @@ Toute action significative (création, modification, téléversement, audience, 
 
 #### Commande de rappel — `audiences:rappel`
 
-Filtre les audiences `Prévue` dans l'horizon (`--horizon`, défaut 3 jours), génère une notification par avocat, puis exclut en un seul `whereIn` groupé les messages non lus déjà envoyés (idempotence et volume minimal de requêtes). Programmable via le planificateur Laravel.
+La commande délègue la génération à la file d'attente (job `GenererRappelsAudience`) : elle filtre les audiences `Prévue` dans l'horizon (`--horizon`, défaut 3 jours), génère une notification par avocat, puis exclut en un seul `whereIn` groupé les messages non lus déjà envoyés (idempotence et volume minimal de requêtes). Programmable via le planificateur Laravel.
 
 ### Frontend
 

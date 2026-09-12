@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreDossierRequest;
 use App\Http\Requests\UpdateDossierRequest;
+use App\Jobs\SupprimerDocumentsDossier;
 use App\Models\Client;
 use App\Models\Dossier;
 use App\Models\User;
@@ -101,7 +102,10 @@ class DossierController extends Controller
 
     public function destroy(Dossier $dossier): RedirectResponse
     {
+        $dossierId = $dossier->id;
+
         $dossier->delete();
+        SupprimerDocumentsDossier::dispatch($dossierId);
 
         return redirect()
             ->route('dossiers.index')

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreDocumentRequest;
+use App\Jobs\TraiterTeleversementDocument;
 use App\Models\Document;
 use App\Models\Dossier;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +18,7 @@ class DocumentController extends Controller
         $nom = $request->input('nom') ?: $fichier->getClientOriginalName();
 
         try {
-            $chemin = $fichier->store("documents/{$dossier->id}", 'public');
+            $cheminTemporaire = $fichier->store("tmp/{$dossier->id}", 'public');
         } catch (\Throwable $e) {
             report($e);
 
@@ -25,15 +26,13 @@ class DocumentController extends Controller
                 ->with('error', 'Impossible d\'enregistrer le fichier sur le serveur.');
         }
 
-        $document = $dossier->documents()->create([
-            'nom' => $nom,
-            'chemin' => $chemin,
-            'type' => $request->input('type', 'Autre'),
-            'taille' => $fichier->getSize(),
-            'uploaded_by' => $request->user()->id,
-        ]);
-
-        $dossier->enregistrerAction("Document téléversé : {$document->nom}", $request->user());
+        TraiterTeleversementDocument::dispatch(
+            dossierId: $dossier->id,
+            utilisateurId: $request->user()->id,
+            cheminTemporaire: $cheminTemporaire,
+            nom: $nom,
+            type: $request->input('type', 'Autre'),
+        );
 
         return redirect()
             ->route('dossiers.show', $dossier)
