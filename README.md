@@ -317,19 +317,64 @@ docker compose run --rm node npm ci        # si package.json a changé
 
 ### Commandes utiles (récapitulatif)
 
+**Cycle de vie des conteneurs :**
+
 | Commande | Description |
 | ------------------------ | ------------------------------------------------- |
-| `docker compose up -d --build` | Construire et démarrer tous les services. |
-| `docker compose down` | Arrêter les conteneurs (données conservées). |
-| `docker compose down -v` | Arrêter et supprimer les volumes (réinitialisation totale). |
+| `docker compose up -d` | Démarre tous les services en arrière-plan (build si nécessaire). |
+| `docker compose up -d --build` | Reconstruit les images puis démarre tous les services. |
+| `docker compose build` | Construit (ou reconstruit) les images sans démarrer. |
+| `docker compose pull` | Télécharge les dernières versions des images. |
+| `docker compose start` | Démarre des conteneurs déjà créés mais arrêtés. |
+| `docker compose stop` | Arrête les conteneurs sans les supprimer. |
+| `docker compose restart` | Redémarre tous les conteneurs. |
+| `docker compose down` | Arrête et supprime les conteneurs (données conservées). |
+| `docker compose down -v` | Arrête, supprime les conteneurs ET les volumes (réinitialisation totale). |
 | `docker compose ps` | État des conteneurs. |
-| `docker compose logs -f` | Logs en temps réel de tous les services. |
-| `docker compose config --services` | Liste les services du Compose file. |
-| `docker compose exec app php artisan ...` | Exécuter une commande Artisan. |
-| `docker compose exec app composer install` | (Ré)installer les dépendances PHP. |
-| `docker compose run --rm node npm ci` | (Ré)installer les dépendances frontend. |
-| `docker compose run --rm node npm run build` | Compiler les assets pour la production. |
-| `docker compose config --services` | Lister les services définis. |
+| `docker compose top` | Processus en cours dans chacun des conteneurs. |
+| `docker compose images` | Images utilisées par les services. |
+
+**Inspection de la configuration :**
+
+| Commande | Description |
+| ------------------------ | ------------------------------------------------- |
+| `docker compose config` | Valide et affiche la configuration Compose résolue. |
+| `docker compose config --services` | Liste les services définis. |
+| `docker compose config --volumes` | Liste les volumes définis. |
+| `docker compose port app 9000` | Affiche le port publié sur l'hôte pour un conteneur. |
+
+**Exécution de commandes dans les conteneurs :**
+
+| Commande | Description |
+| ------------------------ | ------------------------------------------------- |
+| `docker compose exec app bash` | Ouvre un shell interactif dans le conteneur `app`. |
+| `docker compose exec app php artisan ...` | Exécute une commande Artisan dans le conteneur `app`. |
+| `docker compose exec app composer install` | (Ré)installe les dépendances PHP. |
+| `docker compose exec node sh` | Ouvre un shell dans le conteneur `node`. |
+| `docker compose run --rm node npm ci` | (Ré)installe les dépendances frontend (conteneur supprimé ensuite). |
+| `docker compose run --rm node npm run build` | Compile les assets pour la production. |
+| `docker compose exec db mysql -ulexora -plexora_secret lexora` | Client MySQL dans le conteneur de base de données. |
+
+**Logs :**
+
+| Commande | Description |
+| ------------------------ | ------------------------------------------------- |
+| `docker compose logs -f` | Suit les logs en temps réel de tous les services. |
+| `docker compose logs <service>` | Logs d'un service précis. |
+| `docker compose logs --tail=100 app` | Affiche les 100 dernières lignes du service `app`. |
+| `docker compose exec app tail -f storage/logs/laravel.log` | Suit le fichier de log de Laravel. |
+
+**Nettoyage :**
+
+| Commande | Description |
+| ------------------------ | ------------------------------------------------- |
+| `docker compose rm -f` | Supprime les conteneurs arrêtés. |
+| `docker volume prune` | Supprime les volumes Docker non utilisés (⚠️ vérifiez avant). |
+| `docker system prune` | Supprime conteneurs, images et réseaux Docker inutilisés (⚠️ vérifiez avant). |
+
+> Les services disponibles sont : `app` (PHP-FPM / Laravel), `nginx` (serveur web, port 8000), `db` (MySQL 8, port 3307), `node` (Vite, port 5173), `queue` (worker de jobs) et `schedule` (planificateur).
+>
+> `docker compose exec <service> <commande>` se limite aux conteneurs en cours d'exécution, tandis que `docker compose run --rm <service> <commande>` crée un conteneur jetable pour la commande (utile pour `node`).
 
 ## Installation
 
