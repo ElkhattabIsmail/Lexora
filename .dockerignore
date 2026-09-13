@@ -1,0 +1,42 @@
+# Version control
+.git
+.gitattributes
+.gitignore
+
+# Environment files (never build your secrets into an image)
+.env
+.env.backup
+.env.production
+
+# Dependencies (installed inside the images)
+node_modules
+vendor
+
+# Frontend build outputs (generated at runtime / dev server)
+public/build
+public/hot
+
+# Local data that must not bloat the image or leak
+storage/logs/*.log
+storage/framework/views/*.php
+*.sqlite
+
+# Tooling / editor files
+.agents
+.idea
+.vscode
+Thumbs.db
+*.code-workspace
+
+# Documentation (not required inside the containers)
+*.md
+
+# Frontend sources (the app image never needs them; the node service uses a volume)
+package.json
+package-lock.json
+postcss.config.js
+tailwind.config.js
+vite.config.js
+resources
+public/favicon.ico
+public/robots.txt

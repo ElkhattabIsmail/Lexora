@@ -10,7 +10,7 @@
   <img alt="PHP"      src="https://img.shields.io/badge/PHP-8.3-777bb4">
   <img alt="Laravel"  src="https://img.shields.io/badge/Laravel-13-f4645f">
   <img alt="Tailwind" src="https://img.shields.io/badge/Tailwind_CSS-3-38bdf8">
-  <img alt="Tests"    src="https://img.shields.io/badge/tests-133%20passed-22c55e">
+  <img alt="Tests"    src="https://img.shields.io/badge/tests-141%20passed-22c55e">
   <img alt="Licence"  src="https://img.shields.io/badge/licence-MIT-3b82f6">
 </p>
 
@@ -143,7 +143,7 @@ En complément : les 5 prochaines audiences (avec dossier, client et avocat) et 
 - Masquage des accès privés et blocs opératoires requis par rôle.
 - Règle de validation « EstAvocat » : l'avocat assigné doit réellement posséder le rôle Avocat.
 - Détection proactive des requêtes N+1 (`Model::preventLazyLoading` hors production) et suite de tests dédiée mesurant le nombre de requêtes par page.
-- 133 tests PHPUnit couvrant règles métier, autorisations par rôle, CRUD, schéma de base de données et performances des requêtes.
+- 141 tests PHPUnit couvrant règles métier, autorisations par rôle, CRUD, schéma de base de données et performances des requêtes.
 
 ## Stack technique
 
@@ -153,7 +153,7 @@ En complément : les 5 prochaines audiences (avec dossier, client et avocat) et 
 | Base de données | MySQL 8 (SQLite pour les tests)             |
 | Frontend       | Tailwind CSS 3, Alpine.js 3, Vite             |
 | Auth           | Laravel Breeze (sessions, vérification e-mail)|
-| Tests          | PHPUnit 12 (133 tests), Laravel Pint          |
+| Tests          | PHPUnit 12 (141 tests), Laravel Pint          |
 | Console        | Commande `audiences:rappel` planifiable       |
 
 ## Prérequis
@@ -167,6 +167,169 @@ En complément : les 5 prochaines audiences (avec dossier, client et avocat) et 
 | Base de données | MySQL 8 **ou** SQLite 3.35+ |
 
 > Lexora fonctionne avec n'importe quel SGBD supporté par Laravel (MySQL, MariaDB, PostgreSQL, SQLite). Le fichier d'exemple `.env.example` est configuré pour SQLite ; la base de développement utilise MySQL 8.
+
+## Docker
+
+L'application est **dockerisée** : PHP 8.3 (FPM), Nginx, MySQL 8, Node.js/Vite sont fournis dans des conteneurs. **Aucune installation locale de PHP, Composer, MySQL ou Node.js n'est nécessaire.**
+
+### Prérequis (Docker)
+
+| Outil        | Version                |
+| ------------ | ---------------------- |
+| Docker       | Engine 24+ / Desktop   |
+| Docker Compose | v2 (inclus avec Docker Desktop) |
+
+> Sur Windows : installez [Docker Desktop](https://docs.docker.com/desktop/) puis lancez-le avant les commandes ci-dessous.
+
+### Architecture Docker
+
+```
+                        host
+    ┌────────────────────┼───────────────────────┐
+    │  http://localhost:8000 (Nginx)   :5173 (Vite) │
+    ├────────куне────────┬───────────┬──────────────┤
+    │   nginx (1.27)     │  app      │  node (22)   │
+    │  :80 -> :8000      │ php-fpm   │  npm run dev │
+    │                    │  :9000    │              │
+    │        └───────────┼───────────┘              │
+    │  .:/var/www/html + volumes vendor, storage    │
+    ├──────────────┬────────────────────────────────┤
+    │ db (mysql:8.4)  volume db_data  :3306 -> :3307 │
+    ├──────────────┼────────────────────────────────┤
+    │ queue  (artisan queue:work)                   │
+    │ schedule (artisan schedule:work)              │
+    └──────────────┴────────────────────────────────┘
+```
+
+- **app** : `php:8.3-fpm` + extensions Laravel (`pdo_mysql`, `pdo_sqlite`, `mbstring`, `gd`, `intl`, `zip`, `bcmath`, `pcntl`, `exif`, `opcache`) + Composer 2.
+- **nginx** : sert `public/`, routes Laravel sans `/index.php`, transpilation PHP vers `app:9000`.
+- **db** : MySQL 8.4, base `lexora`, utilisateur `lexora` / mot de passe `lexora_secret`, volume persistant `db_data`, port hôte **3307** (évite tout conflit avec un MySQL local).
+- **node** : Node 22 Alpine, installe `node_modules`, lance Vite (hot reload) sur le port 5173.
+- **queue** : `php artisan queue:work` (téléversement des documents, suppression des dossiers, rappels).
+- **schedule** : `php artisan schedule:work` (exécution quotidienne de `audiences:rappel`).
+
+Le code source est monté en lecture/écriture depuis le dépôt (`.:/var/www/html`) : vos modifications sont vues instantanément, sans reconstruire les images. `vendor`, `node_modules` et `storage` sont des volumes nommés Linux (les versions Windows de ces dossiers ne sont donc **pas** utilisées).
+
+### Premier démarrage (clone neuf)
+
+```bash
+git clone <url-du-dépôt> lexora
+cd lexora
+
+docker compose up -d --build
+```
+
+L'entrée de point du conteneur crée `.env` depuis `.env.example` et génère `APP_KEY` automatiquement si nécessaire. Vérifiez l'état, puis initialisez la base :
+
+```bash
+docker compose ps
+
+# Migrations + jeu de données de démonstration
+docker compose exec app php artisan migrate --seed
+
+# Lien public/storage pour les documents (déjà fait par l'entrée de point)
+docker compose exec app php artisan storage:link
+```
+
+L'application est alors disponible sur **http://localhost:8000** (comptes de démonstration : voir la section [Comptes de démonstration](#comptes-de-démonstration)).
+
+### Démarrage / arrêt
+
+```bash
+docker compose up -d --build   # construire et démarrer tous les conteneurs
+docker compose up -d           # démarrer (sans reconstruire)
+docker compose down            # arrêter les conteneurs (la base est conservée)
+docker compose restart         # redémarrer les conteneurs
+docker compose ps              # état des conteneurs
+```
+
+### Commandes Artisan
+
+Toutes les commandes Artisan s'exécutent dans le conteneur `app` :
+
+```bash
+docker compose exec app php artisan --version
+docker compose exec app php artisan migrate:status
+docker compose exec app php artisan migrate          # appliquer les migrations
+docker compose exec app php artisan migrate --seed   # migrations + seed
+docker compose exec app php artisan db:seed          # seed seul
+docker compose exec app php artisan audiences:rappel --horizon=3
+docker compose exec app php artisan queue:failed
+docker compose exec app php artisan test             # suite de tests (141)
+docker compose exec app vendor/bin/pint              # formatage
+```
+
+### Vite / assets
+
+Deux modes :
+
+- **Développement (hot reload)** — le service `node` tourne en permanence : les balises `@vite` pointent vers le serveur Vite sur **http://localhost:5173** (relance automatique au `npm run dev`). Rien à faire : il démarre avec `docker compose up`.
+- **Production / hors ligne** — compiler les assets une fois pour qu'ils soient servis par Nginx :
+
+```bash
+docker compose run --rm node npm ci
+docker compose run --rm node npm run build
+docker compose exec app php artisan optimize:clear
+```
+
+Installer des dépendances frontend :
+
+```bash
+docker compose run --rm node npm install <paquet>
+```
+
+### Logs
+
+```bash
+docker compose logs           # logs de tous les services
+docker compose logs -f        # suivi en temps réel
+docker compose logs app       # logs du backend PHP (Laravel)
+docker compose logs nginx
+docker compose logs db
+docker compose exec app tail -f storage/logs/laravel.log
+```
+
+### Accès à la base de données
+
+- Depuis un client SQL hôte : **localhost:3307**, base `lexora`, utilisateur `lexora` / `lexora_secret` (root : `root_secret`).
+- Depuis les conteneurs, utilisez le nom de service **`db`** (jamais `localhost`).
+
+### Réinitialiser la base de données
+
+```bash
+docker compose down -v        # supprime les conteneurs ET les volumes (base vidée)
+
+docker compose up -d          # reconstruit une base vide
+docker compose exec app php artisan migrate --seed
+```
+
+> ⚠️ `docker compose down -v` supprime **tous** les volumes nommés du projet : base de données, `storage` (documents téléversés), `vendor` et `node_modules`. Après cela, le premier démarrage réinstalle `vendor` et `node_modules` automatiquement.
+
+### Reconstruire les images
+
+Après modification du `Dockerfile`, de `docker-compose.yml` ou des dépendances `composer.json`/`package.json` :
+
+```bash
+docker compose up -d --build
+docker compose exec app composer install   # si composer.json a changé
+docker compose run --rm node npm ci        # si package.json a changé
+```
+
+### Commandes utiles (récapitulatif)
+
+| Commande | Description |
+| ------------------------ | ------------------------------------------------- |
+| `docker compose up -d --build` | Construire et démarrer tous les services. |
+| `docker compose down` | Arrêter les conteneurs (données conservées). |
+| `docker compose down -v` | Arrêter et supprimer les volumes (réinitialisation totale). |
+| `docker compose ps` | État des conteneurs. |
+| `docker compose logs -f` | Logs en temps réel de tous les services. |
+| `docker compose config --services` | Liste les services du Compose file. |
+| `docker compose exec app php artisan ...` | Exécuter une commande Artisan. |
+| `docker compose exec app composer install` | (Ré)installer les dépendances PHP. |
+| `docker compose run --rm node npm ci` | (Ré)installer les dépendances frontend. |
+| `docker compose run --rm node npm run build` | Compiler les assets pour la production. |
+| `docker compose config --services` | Lister les services définis. |
 
 ## Installation
 
@@ -351,7 +514,7 @@ Les commandes nécessaires au fonctionnement et au développement du projet :
 | `php artisan optimize:clear`     | Vide les caches (config, route, cache, view…). |
 | `php artisan schedule:list`      | Liste les tâches planifiées. |
 | `php artisan route:list`         | Liste les routes publiées. |
-| `php artisan test`               | Exécute la suite de tests (139 tests PHPUnit). |
+| `php artisan test`               | Exécute la suite de tests (141 tests PHPUnit). |
 | `vendor/bin/pint`                | Formate le code PHP (Laravel Pint). |
 
 ## Routes de l'application
@@ -816,7 +979,7 @@ Le rôle de l'utilisateur connecté est pré-chargé (`Authenticated` event dans
 La suite de tests couvre les règles métier, les CRUD, la sécurité par rôles, l'ergonomie, le schéma de base de données et la détection des requêtes N+1.
 
 ```bash
-php artisan test         # 133 tests, 404 assertions
+php artisan test         # 141 tests, 425 assertions
 vendor/bin/pint          # formatage du code (Laravel Pint)
 ```
 

@@ -1,0 +1,172 @@
+# Shared named volumes -> data survives "docker compose down".
+volumes:
+    vendor_data:
+    storage_data:
+    node_modules_data:
+    db_data:
+
+# Internally resolved network; containers reach each other by service name.
+networks:
+    lexora:
+
+services:
+    # PHP-FPM running the Laravel application.
+    app:
+        build:
+            context: .
+        image: lexora-app
+        restart: unless-stopped
+        working_dir: /var/www/html
+        environment:
+            # Let PHP-FPM know it lives behind the docker network.
+            APP_ENV: ${APP_ENV:-local}
+            APP_DEBUG: ${APP_DEBUG:-true}
+            DB_CONNECTION: mysql
+            DB_HOST: db
+            DB_PORT: 3306
+            DB_DATABASE: lexora
+            DB_USERNAME: lexora
+            DB_PASSWORD: lexora_secret
+        volumes:
+            - .:/var/www/html
+            - vendor_data:/var/www/html/vendor
+            - storage_data:/var/www/html/storage
+        depends_on:
+            db:
+                condition: service_healthy
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "test -f /var/www/html/.env && grep -q '^APP_KEY=.' /var/www/html/.env",
+                ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
+        networks:
+            - lexora
+
+    # Nginx web server, serves Laravel's public/ directory.
+    nginx:
+        image: nginx:1.27-alpine
+        restart: unless-stopped
+        volumes:
+            - .:/var/www/html:ro
+            - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+        ports:
+            - "8000:80"
+        depends_on:
+            app:
+                condition: service_healthy
+        networks:
+            - lexora
+
+    # MySQL 8 database server, isolated from any host MySQL install.
+    db:
+        image: mysql:8.4
+        restart: unless-stopped
+        command:
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_unicode_ci
+        environment:
+            MYSQL_DATABASE: lexora
+            MYSQL_USER: lexora
+            MYSQL_PASSWORD: lexora_secret
+            MYSQL_ROOT_PASSWORD: root_secret
+        volumes:
+            - db_data:/var/lib/mysql
+        ports:
+            # Host 3307 -> container 3306 (avoids conflicts with local MySQL).
+            - "3307:3306"
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent",
+                ]
+            interval: 10s
+            timeout: 5s
+            retries: 10
+            start_period: 30s
+        networks:
+            - lexora
+
+    # Vite dev server (hot reload). Assets are reachable from the app via
+    # the shared public/ directory (blade reads the "hot" file).
+    node:
+        image: node:22-alpine
+        restart: unless-stopped
+        working_dir: /var/www/html
+        command:
+            - sh
+            - -c
+            - |
+                if [ ! -d node_modules ]; then
+                    npm ci
+                fi
+                npm run dev -- --host 0.0.0.0
+        volumes:
+            - .:/var/www/html
+            - node_modules_data:/var/www/html/node_modules
+        ports:
+            - "5173:5173"
+        depends_on:
+            app:
+                condition: service_started
+        networks:
+            - lexora
+
+    # Queue worker: processes jobs (document uploads, dossier deletion, reminders).
+    queue:
+        image: lexora-app
+        restart: unless-stopped
+        working_dir: /var/www/html
+        command: php artisan queue:work --sleep=1 --tries=3
+        environment:
+            APP_ENV: ${APP_ENV:-local}
+            APP_DEBUG: ${APP_DEBUG:-true}
+            DB_CONNECTION: mysql
+            DB_HOST: db
+            DB_PORT: 3306
+            DB_DATABASE: lexora
+            DB_USERNAME: lexora
+            DB_PASSWORD: lexora_secret
+        volumes:
+            - .:/var/www/html
+            - vendor_data:/var/www/html/vendor
+            - storage_data:/var/www/html/storage
+        depends_on:
+            db:
+                condition: service_healthy
+            app:
+                condition: service_healthy
+        networks:
+            - lexora
+
+    # Scheduler: runs Laravel's scheduled commands (audiences:rappel).
+    schedule:
+        image: lexora-app
+        restart: unless-stopped
+        working_dir: /var/www/html
+        command: php artisan schedule:work
+        environment:
+            APP_ENV: ${APP_ENV:-local}
+            APP_DEBUG: ${APP_DEBUG:-true}
+            DB_CONNECTION: mysql
+            DB_HOST: db
+            DB_PORT: 3306
+            DB_DATABASE: lexora
+            DB_USERNAME: lexora
+            DB_PASSWORD: lexora_secret
+        volumes:
+            - .:/var/www/html
+            - vendor_data:/var/www/html/vendor
+            - storage_data:/var/www/html/storage
+        depends_on:
+            db:
+                condition: service_healthy
+            app:
+                condition: service_healthy
+        networks:
+            - lexora

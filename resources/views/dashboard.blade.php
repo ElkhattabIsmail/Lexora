@@ -86,7 +86,7 @@
                     <div class="text-sm text-slate-400 mb-2">dossiers gagnés</div>
                     <div class="text-sm text-slate-400">Total clients : {{ number_format($stats['total_clients']) }}</div>
                     <div class="mt-auto w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                        <div class="bg-purple-500 h-1.5 rounded-full" @style(['width' => $stats['taux_reussite'] . '%'])></div>
+                        <div class="bg-purple-500 h-1.5 rounded-full" style="width: {{ $stats['taux_reussite'] }}%;"></div>
                     </div>
                 </div>
             </div>
@@ -108,7 +108,7 @@
                                 $count = $stats['dossiers_par_mois']->get($index + 1, 0);
                                 $height = $count > 0 ? max(8, (int) round(($count / $maxMois) * 100)) : 4;
                             @endphp
-                            <div class="w-1/12 {{ $count > 0 ? 'bg-brand-DEFAULT hover:bg-brand-dark' : 'bg-brand-light/20' }} transition-colors rounded-t-lg relative group cursor-pointer"   @style(['height' => $height . '%'])>
+                            <div class="w-1/12 {{ $count > 0 ? 'bg-brand-DEFAULT hover:bg-brand-dark' : 'bg-brand-light/20' }} transition-colors rounded-t-lg relative group cursor-pointer" style="height: {{ $height }}%;">
                                 <div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs py-1 px-2 rounded whitespace-nowrap">{{ $label }} — {{ $count }}</div>
                             </div>
                         @endforeach

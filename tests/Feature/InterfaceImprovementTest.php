@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Client;
+use App\Models\Dossier;
 use App\Models\Facture;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -120,5 +121,48 @@ class InterfaceImprovementTest extends TestCase
         $response->assertOk();
         $response->assertSee('md:hidden');
         $response->assertSee($admin->nom_complet);
+    }
+
+    /**
+     * Vérifie que le graphique « Évolution des dossiers » affiche des hauteurs de barres valides.
+     */
+    public function test_dashboard_evolution_chart_renders_valid_bar_heights(): void
+    {
+        $avocat = User::factory()->avocat()->create();
+        $client = Client::factory()->particulier()->create();
+        $annee = now()->year;
+
+        Dossier::factory()->count(2)->create([
+            'date_ouverture' => $annee.'-01-10',
+            'client_id' => $client->id,
+            'avocat_id' => $avocat->id,
+        ]);
+        Dossier::factory()->create([
+            'date_ouverture' => $annee.'-02-10',
+            'client_id' => $client->id,
+            'avocat_id' => $avocat->id,
+        ]);
+
+        $response = $this->actingAs($avocat)->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertSee('3 dossier(s) ouverts cette année');
+        $response->assertSee('style="height: 100%;"', escape: false);
+        $response->assertSee('style="height: 50%;"', escape: false);
+        $response->assertDontSee('style="height;"', escape: false);
+    }
+
+    /**
+     * Vérifie que la barre de progression du taux de réussite possède une largeur valide.
+     */
+    public function test_dashboard_success_rate_bar_renders_valid_width(): void
+    {
+        $avocat = User::factory()->avocat()->create();
+        $client = Client::factory()->particulier()->create();
+
+        $response = $this->actingAs($avocat)->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertDontSee('style="width;"', escape: false);
     }
 }

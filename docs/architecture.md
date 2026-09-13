@@ -8,7 +8,7 @@
 | Base de données| MySQL 8 / SQLite                          | Requêtes portables |
 | Frontend       | Tailwind CSS 3 + Alpine.js 3.4 + Vite     | SPA-lite : interactions Alpine, services Vite |
 | Linting        | Laravel Pint                              | `vendor/bin/pint --dirty` |
-| Tests          | PHPUnit 12 (133 tests)                    | Intégrés à Laravel (`php artisan test`) |
+| Tests          | PHPUnit 12 (141 tests)                    | Intégrés à Laravel (`php artisan test`) |
 
 ## Structure des dossiers
 

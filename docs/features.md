@@ -101,4 +101,4 @@ En complément : les 5 prochaines audiences (avec dossier, client et avocat) et 
 - Masquage des accès privés et blocs opératoires requis par rôle.
 - Règle de validation « EstAvocat » : l'avocat assigné doit réellement posséder le rôle Avocat.
 - Détection proactive des requêtes N+1 (`Model::preventLazyLoading` hors production) et suite de tests dédiée mesurant le nombre de requêtes par page.
-- 133 tests PHPUnit couvrant règle métiers, autorisations par rôle, CRUD, schéma de base de données et performances des requêtes.
+- 141 tests PHPUnit couvrant règles métier, autorisations par rôle, CRUD, schéma de base de données et performances des requêtes.
