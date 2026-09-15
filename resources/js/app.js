@@ -1,3 +1,18 @@
+/* 
+
+Moved searchableSelect into 
+
+app.js
+ using Alpine.data('searchableSelect', ...) — this registers it as a named component before Alpine.start(),
+  so it's always available when Alpine processes the page.
+Removed the now-redundant @push('scripts') blocks from both view files.
+The dropdown now works correctly: clicking focuses the field and shows all options,
+ and typing filters the list to matching names.
+
+ Using in dossiers.create and 
+  dossiers.edit
+  
+ */
 
 import Alpine from 'alpinejs';
 
