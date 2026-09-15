@@ -123,9 +123,9 @@ En complément : les 5 prochaines audiences (avec dossier, client et avocat) et 
 ### 9. Notifications de rappel
 
 - La commande Artisan `audiences:rappel` (RG30) génère une notification « Audience à venir » pour chaque audience prévue dans l'horizon configuré :
-  ```bash
+  bash
   php artisan audiences:rappel --horizon=3
-  ```
+  
 - Le destinataire est l'avocat assigné à l'audience ; le message cite le tribunal, la date, l'heure et le numéro de dossier.
 - Idempotente : une audience déjà notifiée (notification non lue identique) n'est pas notifiée de nouveau.
 - Optimisée en un seul lot : les audiences déjà notifiées sont exclues via une requête `whereIn` groupée.
@@ -183,7 +183,7 @@ L'application est **dockerisée** : PHP 8.3 (FPM), Nginx, MySQL 8, Node.js/Vite 
 
 ### Architecture Docker
 
-```
+
                         host
     ┌────────────────────┼───────────────────────┐
     │  http://localhost:8000 (Nginx)   :5173 (Vite) │
@@ -199,7 +199,7 @@ L'application est **dockerisée** : PHP 8.3 (FPM), Nginx, MySQL 8, Node.js/Vite 
     │ queue  (artisan queue:work)                   │
     │ schedule (artisan schedule:work)              │
     └──────────────┴────────────────────────────────┘
-```
+
 
 - **app** : `php:8.3-fpm` + extensions Laravel (`pdo_mysql`, `pdo_sqlite`, `mbstring`, `gd`, `intl`, `zip`, `bcmath`, `pcntl`, `exif`, `opcache`) + Composer 2.
 - **nginx** : sert `public/`, routes Laravel sans `/index.php`, transpilation PHP vers `app:9000`.
@@ -212,16 +212,16 @@ Le code source est monté en lecture/écriture depuis le dépôt (`.:/var/www/ht
 
 ### Premier démarrage (clone neuf)
 
-```bash
+bash
 git clone <url-du-dépôt> lexora
 cd lexora
 
 docker compose up -d --build
-```
+
 
 L'entrée de point du conteneur crée `.env` depuis `.env.example` et génère `APP_KEY` automatiquement si nécessaire. Vérifiez l'état, puis initialisez la base :
 
-```bash
+bash
 docker compose ps
 
 # Migrations + jeu de données de démonstration
@@ -229,25 +229,25 @@ docker compose exec app php artisan migrate --seed
 
 # Lien public/storage pour les documents (déjà fait par l'entrée de point)
 docker compose exec app php artisan storage:link
-```
+
 
 L'application est alors disponible sur **http://localhost:8000** (comptes de démonstration : voir la section [Comptes de démonstration](#comptes-de-démonstration)).
 
 ### Démarrage / arrêt
 
-```bash
+bash
 docker compose up -d --build   # construire et démarrer tous les conteneurs
 docker compose up -d           # démarrer (sans reconstruire)
 docker compose down            # arrêter les conteneurs (la base est conservée)
 docker compose restart         # redémarrer les conteneurs
 docker compose ps              # état des conteneurs
-```
+
 
 ### Commandes Artisan
 
 Toutes les commandes Artisan s'exécutent dans le conteneur `app` :
 
-```bash
+bash
 docker compose exec app php artisan --version
 docker compose exec app php artisan migrate:status
 docker compose exec app php artisan migrate          # appliquer les migrations
@@ -257,7 +257,7 @@ docker compose exec app php artisan audiences:rappel --horizon=3
 docker compose exec app php artisan queue:failed
 docker compose exec app php artisan test             # suite de tests (141)
 docker compose exec app vendor/bin/pint              # formatage
-```
+
 
 ### Vite / assets
 
@@ -266,28 +266,28 @@ Deux modes :
 - **Développement (hot reload)** — le service `node` tourne en permanence : les balises `@vite` pointent vers le serveur Vite sur **http://localhost:5173** (relance automatique au `npm run dev`). Rien à faire : il démarre avec `docker compose up`.
 - **Production / hors ligne** — compiler les assets une fois pour qu'ils soient servis par Nginx :
 
-```bash
+bash
 docker compose run --rm node npm ci
 docker compose run --rm node npm run build
 docker compose exec app php artisan optimize:clear
-```
+
 
 Installer des dépendances frontend :
 
-```bash
+bash
 docker compose run --rm node npm install <paquet>
-```
+
 
 ### Logs
 
-```bash
+bash
 docker compose logs           # logs de tous les services
 docker compose logs -f        # suivi en temps réel
 docker compose logs app       # logs du backend PHP (Laravel)
 docker compose logs nginx
 docker compose logs db
 docker compose exec app tail -f storage/logs/laravel.log
-```
+
 
 ### Accès à la base de données
 
@@ -296,12 +296,12 @@ docker compose exec app tail -f storage/logs/laravel.log
 
 ### Réinitialiser la base de données
 
-```bash
+bash
 docker compose down -v        # supprime les conteneurs ET les volumes (base vidée)
 
 docker compose up -d          # reconstruit une base vide
 docker compose exec app php artisan migrate --seed
-```
+
 
 > ⚠️ `docker compose down -v` supprime **tous** les volumes nommés du projet : base de données, `storage` (documents téléversés), `vendor` et `node_modules`. Après cela, le premier démarrage réinstalle `vendor` et `node_modules` automatiquement.
 
@@ -309,11 +309,11 @@ docker compose exec app php artisan migrate --seed
 
 Après modification du `Dockerfile`, de `docker-compose.yml` ou des dépendances `composer.json`/`package.json` :
 
-```bash
+bash
 docker compose up -d --build
 docker compose exec app composer install   # si composer.json a changé
 docker compose run --rm node npm ci        # si package.json a changé
-```
+
 
 ### Commandes utiles (récapitulatif)
 
@@ -380,23 +380,23 @@ docker compose run --rm node npm ci        # si package.json a changé
 
 ### 1. Récupérer le code source
 
-```bash
+bash
 git clone <url-du-dépôt> lexora
 cd lexora
-```
+
 
 ### 2. Installer les dépendances PHP
 
-```bash
+bash
 composer install
-```
+
 
 ### 3. Configurer l'environnement
 
-```bash
+bash
 cp .env.example .env      # Windows : copy .env.example .env
 php artisan key:generate
-```
+
 
 #### Choix de la base de données
 
@@ -404,9 +404,9 @@ php artisan key:generate
 
 Dans `.env`, assurez-vous d'avoir :
 
-```dotenv
+dotenv
 DB_CONNECTION=sqlite
-```
+
 
 Créez le fichier de base : `touch database/database.sqlite` (Windows : `New-Item database\database.sqlite -ItemType File`).
 
@@ -414,14 +414,14 @@ Créez le fichier de base : `touch database/database.sqlite` (Windows : `New-Ite
 
 Dans `.env` :
 
-```dotenv
+dotenv
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=lexora
 DB_USERNAME=root
 DB_PASSWORD=secret
-```
+
 
 Créez préalablement la base : `CREATE DATABASE lexora CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
 
@@ -434,17 +434,17 @@ Autres variables notables du `.env` :
 
 ### 4. Installer les dépendances frontend
 
-```bash
+bash
 npm install
 npm run build      # ou : npm run dev (démarrer Vite en mode développement)
-```
+
 
 ### 5. Migrer et peupler la base
 
-```bash
+bash
 php artisan migrate
 php artisan db:seed
-```
+
 
 Le seed crée les rôles, 6 comptes de démonstration et un jeu de données réaliste (clients, dossiers, audiences, documents, factures, paiements, notifications, historique).
 
@@ -452,24 +452,24 @@ Le seed crée les rôles, 6 comptes de démonstration et un jeu de données réa
 
 Les documents sont stockés dans `storage/app/public` et servis via un lien symbolique :
 
-```bash
+bash
 php artisan storage:link
-```
+
 
 ### Installation automatique (tout-en-un)
 
 Le script Composer `setup` enchaîne les étapes 2 à 5 :
 
-```bash
+bash
 composer run setup
-```
+
 
 Puis, complétez avec le seed et le lien storage :
 
-```bash
+bash
 php artisan db:seed
 php artisan storage:link
-```
+
 
 ### Dépannage
 
@@ -482,14 +482,14 @@ php artisan storage:link
 
 ## Lancement du projet
 
-```bash
+bash
 # Démarrage complet (serveur Laravel + Vite en parallèle)
 composer run dev
 
 # Ou manuellement, dans deux terminaux :
 php artisan serve        # backend  → http://localhost:8000
 npm run dev              # frontend → recompilation Vite (hot reload)
-```
+
 
 ## Comptes de démonstration
 
@@ -508,9 +508,9 @@ Créés par `php artisan db:seed`. Tous les comptes partagent le mot de passe `p
 
 Les opérations lourdes sont déléguées à la file d'attente Laravel (connexion `database` par défaut) afin de garder des réponses HTTP rapides. Un worker doit tourner pour traiter ces jobs :
 
-```bash
+bash
 php artisan queue:work
-```
+
 
 Jobs présents dans `app/Jobs` :
 
@@ -526,9 +526,9 @@ En environnement de test, `QUEUE_CONNECTION=sync` exécute les jobs immédiateme
 
 La commande `audiences:rappel` envoie à la file d'attente la génération des rappels avant chaque audience :
 
-```bash
+bash
 php artisan audiences:rappel --horizon=3
-```
+
 
 - `--horizon` : nombre de jours avant l'audience pour envoyer le rappel (défaut : 3).
 - Idempotente : une même audience ne reçoit qu'un seul rappel.
@@ -676,7 +676,7 @@ Schéma complet de l'application (12 migrations). Les requêtes restent portable
 
 ### Vue d'ensemble
 
-```
+
 roles ──< users ──< dossiers ──< audiences
                 │        │
                 │        ├──< documents
@@ -685,7 +685,7 @@ roles ──< users ──< dossiers ──< audiences
 
 clients ──< dossiers        clients ──< factures ──< paiements
 clients ──< factures
-```
+
 
 Relations principales :
 
@@ -856,7 +856,7 @@ Clé primaire : `email`. Colonnes : `token`, `created_at` (nullable).
 
 ### Structure des dossiers
 
-```
+
 app/
 ├── Console/Commands/RappelAudiences.php   # commande de rappel d'audience
 ├── Http/
@@ -883,7 +883,7 @@ database/
 └── seeders/                                # rôles, démo, données réalistes
 resources/views/                            # vues Blade + Alpine (français)
 tests/                                      # tests feature + N+1
-```
+
 
 ### Cycle de vie d'une requête
 
@@ -902,10 +902,10 @@ tests/                                      # tests feature + N+1
 
 Le trait génère une référence annuelle au format `PREFIX-AAAA-XXXXX` (séquence 5 chiffres) :
 
-```php
+php
 $this->generateSequentialReference(Dossier::class, 'DOS'); // DOS-2026-00001
 $this->generateSequentialReference(Facture::class, 'FAC'); // FAC-2026-00001
-```
+
 
 La séquence s'appuie sur le `MAX(id)` de l'année — cohérent sur tous les SGBD et sûr grâce à la contrainte UNIQUE.
 
@@ -1000,12 +1000,12 @@ Le middleware `CheckRole` :
 
 #### Modèle `User`
 
-```php
+php
 $user->hasRole(['Avocat', 'Administrateur']); // bool
 $user->isAdministrateur();
 $user->isAvocat();
 $user->isAssistantJuridique();
-```
+
 
 Le rôle de l'utilisateur connecté est pré-chargé (`Authenticated` event dans `AppServiceProvider`) pour que les vues (menu latéral) connaissent les permissions sans requête supplémentaire.
 
@@ -1023,10 +1023,10 @@ Le rôle de l'utilisateur connecté est pré-chargé (`Authenticated` event dans
 
 La suite de tests couvre les règles métier, les CRUD, la sécurité par rôles, l'ergonomie, le schéma de base de données et la détection des requêtes N+1.
 
-```bash
+bash
 php artisan test         # 141 tests, 425 assertions
 vendor/bin/pint          # formatage du code (Laravel Pint)
-```
+
 
 ## Licence
 

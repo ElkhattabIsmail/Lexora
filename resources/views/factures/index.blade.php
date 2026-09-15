@@ -17,6 +17,7 @@
 
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
 
+                {{-- TODO --}}
                 {{-- Filters --}}
                 <div class="p-4 border-b border-slate-100">
                     <form method="GET" action="{{ route('factures.index') }}" class="space-y-3">
@@ -70,7 +71,7 @@
                                         </a>
                                     </td>
                                     <td class="px-6 py-4 text-slate-500">{{ $facture->dossier?->numero_dossier ?? '—' }}</td>
-                                    <td class="px-6 py-4 font-medium text-slate-800">{{ number_format($facture->montant, 2, ',', ' ') }} €</td>
+                                    <td class="px-6 py-4 font-medium text-slate-800">{{ number_format($facture->montant, 2, ',', ' ') }} DH</td>
                                     <td class="px-6 py-4 text-slate-500">{{ $facture->date_facture?->format('d/m/Y') }}</td>
                                     <td class="px-6 py-4">
                                         <x-status-badge :statut="$facture->statut" />
