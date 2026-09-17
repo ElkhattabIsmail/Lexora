@@ -7,12 +7,43 @@ use App\Models\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
+/**
+ * GenererRappelsAudience Job — generates in-app reminder notifications for upcoming hearings.
+ *
+ * Dispatched by the scheduled command/task runner (e.g. daily via Artisan schedule).
+ * Queries for all "Prévue" audiences within the next $horizon days and creates
+ * a Notification for each responsible lawyer — skipping any that have already
+ * been sent (deduplication check against unread notifications with the same message).
+ *
+ * @property int $horizon  Number of days ahead to look for upcoming hearings.
+ *                         E.g. horizon=1 → sends reminders for hearings due today or tomorrow.
+ */
 class GenererRappelsAudience implements ShouldQueue
 {
     use Queueable;
 
+    /**
+     * Creates the job with the look-ahead horizon.
+     *
+     * @param  int  $horizon  Number of days ahead to check for upcoming hearings.
+     *                        Injected automatically from the dispatch call.
+     */
     public function __construct(public int $horizon) {}
 
+    /**
+     * Executes the job on the queue worker.
+     *
+     * Steps:
+     *   1. Calculate the upper date bound (today + $horizon days, end of day).
+     *   2. Load all "Prévue" audiences scheduled within [now, $cible].
+     *   3. Build a list of candidate notifications (one per lawyer per hearing).
+     *   4. Load existing unread notifications matching the same user_id + message
+     *      to avoid duplicate alerts.
+     *   5. Insert only genuinely new notifications.
+     *
+     * Similar: TraiterTeleversementDocument::handle() — both are queue jobs that
+     *          create database records after performing checks.
+     */
     public function handle(): void
     {
         $cible = now()->addDays($this->horizon)->endOfDay();

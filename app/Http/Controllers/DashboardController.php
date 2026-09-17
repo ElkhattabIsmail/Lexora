@@ -9,8 +9,29 @@ use App\Models\Facture;
 use Carbon\Carbon;
 use Illuminate\View\View;
 
+/**
+ * DashboardController — aggregates KPI statistics for the main dashboard view.
+ *
+ * Route: GET /dashboard  (auth + verified)
+ * This is a read-only controller with a single action; no write operations.
+ */
 class DashboardController extends Controller
 {
+    /**
+     * Builds the stats array for the dashboard and returns the view.
+     *
+     * Statistics computed:
+     *   - dossiers_actifs     : count of open ("En cours") non-archived cases.
+     *   - audiences_a_venir   : count of "Prévue" hearings from today onwards.
+     *   - total_clients       : total number of clients in the system.
+     *   - revenus_du_mois     : sum of payments received this calendar month.
+     *   - taux_reussite       : win rate = (cases won / cases closed) × 100.
+     *   - dossiers_par_mois   : map of month-number → case count for the current year.
+     *   - prochaines_audiences: next 5 upcoming hearings (with dossier, client, avocat).
+     *   - derniers_dossiers   : 5 most recently created cases.
+     *
+     * @return View  dashboard  with: $stats
+     */
     public function index(): View
     {
         $statutsClos = Dossier::whereIn('statut', ['Gagné', 'Perdu', 'Fermé'])
