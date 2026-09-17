@@ -19,10 +19,25 @@ return new class extends Migration
             $table->string('telephone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+/*             
+"Don't allow me to delete a role if it's still referenced by users."
+🔹 Why?
+    It protects referential integrity.
+
+🔹 Compare with other options
+
+->restrictOnDelete()
+
+➡️ Block deletion if related records exist.
+
+->cascadeOnDelete()
+
+➡️ Delete the related records automatically. */
+
             $table->foreignId('role_id')->constrained('roles')->restrictOnDelete();
             $table->rememberToken();
             $table->timestamps();
-
+            
             $table->index('role_id');
             $table->index('email');
         });
