@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreFactureRequest;
 use App\Http\Requests\UpdateFactureRequest;
-use App\Models\Client;
+use App\Models\Client; 
 use App\Models\Dossier;
 use App\Models\Facture;
 use App\Traits\GeneratesSequentialReference;

@@ -45,7 +45,7 @@ class ClientController extends Controller
             ->withCount('dossiers')
             ->latest()
             ->paginate(15)
-            ->withQueryString();
+            ->withQueryString();     
 
         return view('clients.index', compact('clients', 'search', 'type'));
     }
