@@ -50,7 +50,7 @@ class DossierController extends Controller
     public function index(Request $request): View
     {
         $statut = $request->string('statut')->trim()->toString();
-        $avocatId = $request->integer('avocat_id') ?: null;
+        $avocatId = $request->integer('avocat_id') ?: null; // Elvis operator:
         $search = $request->string('search')->trim()->toString();
 
         $dossiers = Dossier::query()
