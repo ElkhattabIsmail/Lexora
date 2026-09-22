@@ -79,8 +79,10 @@ class FactureController extends Controller
     {
         $facture->update($request->validated());
 
-|
-    }
+          return redirect()
+            ->route('factures.show', $facture)
+            ->with('success', 'La facture a été mise à jour avec succès.');
+  }
 
     public function destroy(Facture $facture): RedirectResponse
     {

@@ -64,7 +64,7 @@ class DossierController extends Controller
 
         $avocats = User::avocats()->get();
 
-        return view('dossiers.cv', compact('dossiers', 'avocats', 'statut', 'avocatId', 'search'));
+        return view('dossiers.index', compact('dossiers', 'avocats', 'statut', 'avocatId', 'search'));
     }
 
     /**

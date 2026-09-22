@@ -167,7 +167,7 @@ class Dossier extends Model
             $query->where('numero_dossier', 'like', "%{$search}%")
                 ->orWhere('type_affaire', 'like', "%{$search}%")
                 // Delegates client name matching to the Client scope.
-                ->orWhereHas('client', fn (Builder $q) => $q->recherche($search));
+                ->orWhereHas('client', fn (Builder $q) => $q->recherche($search));                                                                                                                                                                                                                                                                                                        
         });
     }
 
