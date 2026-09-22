@@ -133,7 +133,7 @@ class ClientController extends Controller
      */
     public function destroy(Client $client): RedirectResponse
     {
-        if ($client->dossiers()->exists() || $client->factures()->exists()) {
+        if ($client->dossiers()->exists() || $client->factures()->exists()) { 
             return redirect()
                 ->route('clients.show', $client)
                 ->with('error', 'Impossible de supprimer ce client : il possède des dossiers ou des factures.');

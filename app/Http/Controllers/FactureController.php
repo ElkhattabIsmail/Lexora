@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreFactureRequest;
 use App\Http\Requests\UpdateFactureRequest;
-use App\Models\Client; 
+use App\Models\Client;
 use App\Models\Dossier;
 use App\Models\Facture;
 use App\Traits\GeneratesSequentialReference;
@@ -35,7 +35,9 @@ class FactureController extends Controller
     public function create(): View
     {
         $clients = Client::orderBy('nom')->get();
-        $dossiers = Dossier::with('client')->orderBy('numero_dossier')->get();
+
+/*         Resoudre N + 1 probleme
+ */        $dossiers = Dossier::with('client')->orderBy('numero_dossier')->get();
 
         return view('factures.create', compact('clients', 'dossiers'));
     }
@@ -62,7 +64,6 @@ class FactureController extends Controller
     public function show(Facture $facture): View
     {
         $facture->load(['client', 'dossier', 'paiements']);
-
         return view('factures.show', compact('facture'));
     }
 
@@ -78,9 +79,7 @@ class FactureController extends Controller
     {
         $facture->update($request->validated());
 
-        return redirect()
-            ->route('factures.show', $facture)
-            ->with('success', 'La facture a été mise à jour.');
+|
     }
 
     public function destroy(Facture $facture): RedirectResponse
