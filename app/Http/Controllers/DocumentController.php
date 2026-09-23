@@ -24,35 +24,36 @@ use Illuminate\Support\Facades\Storage;
  */
 class DocumentController extends Controller
 {
-    /**
-     * Saves an uploaded file temporarily and dispatches the processing job.
-     *
-     * @param  StoreDocumentRequest  $request  Validated upload form data.
-     *                                         Contains: 'fichier' (UploadedFile), 'nom' (optional), 'type'.
-     * @param  Dossier               $dossier  The parent dossier to associate the document with.
-     *
-     * Steps:
-     *   1. Read the uploaded file and display name from the request.
-     *   2. Store the file to public disk under tmp/{dossier_id}/.
-     *   3. Dispatch TraiterTeleversementDocument (async) to move the file and create the DB record.
-     *   4. Redirect to the dossier show page with a success message.
-     *
-     * @return RedirectResponse  Redirects to dossiers.show.
-     */
     public function store(StoreDocumentRequest $request, Dossier $dossier): RedirectResponse
     {
+        // ---------------------------------------------------------------------
+        // Récupère l'objet UploadedFile depuis la requête multipart
+        // ---------------------------------------------------------------------
         $fichier = $request->file('fichier');
+
+        // ---------------------------------------------------------------------
+        // Si aucun nom personnalisé n'est fourni, on conserve le nom de fichier d'origine
+        // ---------------------------------------------------------------------
         $nom = $request->input('nom') ?: $fichier->getClientOriginalName();
 
+        // ---------------------------------------------------------------------
+        // Écriture physique temporaire du fichier sur le disque 'public' dans storage/app/public/tmp/{id}
+        // ---------------------------------------------------------------------
         try {
             $cheminTemporaire = $fichier->store("tmp/{$dossier->id}", 'public');
         } catch (\Throwable $e) {
+            // Journalise l'exception dans laravel.log sans faire planter l'application
             report($e);
 
             return back()
                 ->with('error', 'Impossible d\'enregistrer le fichier sur le serveur.');
         }
 
+        // ---------------------------------------------------------------------
+        // TraiterTeleversementDocument::dispatch(...) :
+        // Dépile le traitement lourd vers le worker en arrière-plan (Queue) :
+        // déplacement définitif du fichier, extraction des métadonnées et création de la ligne Document.
+        // ---------------------------------------------------------------------
         TraiterTeleversementDocument::dispatch(
             dossierId: $dossier->id,
             utilisateurId: $request->user()->id,
@@ -61,33 +62,34 @@ class DocumentController extends Controller
             type: $request->input('type', 'Autre'),
         );
 
+        // ---------------------------------------------------------------------
+        // Réponse HTTP immédiate sans faire attendre l'utilisateur pendant le traitement
+        // ---------------------------------------------------------------------
         return redirect()
             ->route('dossiers.show', $dossier)
             ->with('success', 'Le document a été téléversé avec succès.');
     }
 
-    /**
-     * Logs the deletion, removes the file from disk, and deletes the DB record.
-     *
-     * @param  Request   $request   Used to get the authenticated user for the activity log.
-     * @param  Dossier   $dossier   Parent dossier (for the activity log and redirect).
-     * @param  Document  $document  Route-model-bound document to delete.
-     *
-     * Steps:
-     *   1. Log "Document supprimé : {name}" to the dossier's historique.
-     *   2. Delete the physical file from the 'public' storage disk.
-     *   3. Delete the Document model from the database.
-     *   4. Redirect to the dossier show page.
-     *
-     * @return RedirectResponse  Redirects to dossiers.show.
-     */
     public function destroy(Request $request, Dossier $dossier, Document $document): RedirectResponse
     {
+        // ---------------------------------------------------------------------
+        // Enregistre la suppression dans l'historique d'audit du dossier
+        // ---------------------------------------------------------------------
         $dossier->enregistrerAction("Document supprimé : {$document->nom}", $request->user());
 
+        // ---------------------------------------------------------------------
+        // Suppression physique du fichier sur le disque 'public' (storage/app/public/...)
+        // ---------------------------------------------------------------------
         Storage::disk('public')->delete($document->chemin);
+
+        // ---------------------------------------------------------------------
+        // Suppression de la ligne dans la table 'documents'
+        // ---------------------------------------------------------------------
         $document->delete();
 
+        // ---------------------------------------------------------------------
+        // Redirection vers le dossier avec message flash
+        // ---------------------------------------------------------------------
         return redirect()
             ->route('dossiers.show', $dossier)
             ->with('success', 'Le document a été supprimé.');

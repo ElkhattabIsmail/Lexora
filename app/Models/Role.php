@@ -10,15 +10,19 @@ class Role extends Model
 {
     use HasFactory;
 
+    // -------------------------------------------------------------------------
+    // Colonnes modifiables par assignation de masse
+    // -------------------------------------------------------------------------
     protected $fillable = [
-        'nom',
+        'nom', // Nom du rôle : "Administrateur", "Avocat", "Assistant juridique", etc.
     ];
 
-    /**
-     * Les utilisateurs ayant ce rôle.
-     */
     public function users(): HasMany
     {
+        // ---------------------------------------------------------------------
+        // Relation HasMany : tous les utilisateurs rattachés à ce rôle
+        // SQL : WHERE users.role_id = roles.id
+        // ---------------------------------------------------------------------
         return $this->hasMany(User::class);
     }
 }

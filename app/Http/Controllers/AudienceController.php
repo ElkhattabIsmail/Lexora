@@ -20,105 +20,100 @@ use Illuminate\View\View;
  */
 class AudienceController extends Controller
 {
-    /**
-     * Shows the form to schedule a new hearing for a given dossier.
-     *
-     * @param  Dossier  $dossier  Route-model-bound dossier this hearing belongs to.
-     *
-     * @return View  audiences.create  with: $dossier, $avocats
-     */
     public function create(Dossier $dossier): View
     {
+        // ---------------------------------------------------------------------
+        // Scope local User::avocats() : ne récupère que les utilisateurs ayant le rôle 'Avocat'.
+        // Permet d'assigner un avocat spécifique à cette audience.
+        // ---------------------------------------------------------------------
         $avocats = User::avocats()->get();
 
+        // ---------------------------------------------------------------------
+        // Affiche le formulaire de planification rattaché au dossier parent.
+        // ---------------------------------------------------------------------
         return view('audiences.create', compact('dossier', 'avocats'));
     }
 
-    /**
-     * Validates and creates a new Audience for the given dossier, then logs the action.
-     *
-     * @param  StoreAudienceRequest  $request  Validated hearing data.
-     * @param  Dossier               $dossier  The parent dossier to attach the hearing to.
-     *
-     * Steps:
-     *   1. Validate input via StoreAudienceRequest.
-     *   2. Create the Audience record linked to $dossier.
-     *   3. Log "Audience planifiée" to the dossier's historique.
-     *   4. Redirect back to the dossier show page.
-     *
-     * @return RedirectResponse  Redirects to dossiers.show.
-     */
     public function store(StoreAudienceRequest $request, Dossier $dossier): RedirectResponse
     {
+        // ---------------------------------------------------------------------
+        // $dossier->audiences()->create(...) :
+        // Crée l'audience directement liée au dossier parent via la relation HasMany
+        // en assignant automatiquement la clé étrangère 'dossier_id'.
+        // ---------------------------------------------------------------------
         $audience = $dossier->audiences()->create($request->validated());
 
+        // ---------------------------------------------------------------------
+        // Journalise la planification de l'audience dans l'historique d'audit du dossier.
+        // ---------------------------------------------------------------------
         $dossier->enregistrerAction(
             "Audience planifiée : {$audience->tribunal} le {$audience->date->format('d/m/Y')} à {$audience->heure}",
             $request->user(),
         );
 
+        // ---------------------------------------------------------------------
+        // Redirection vers la page du dossier avec message de confirmation.
+        // ---------------------------------------------------------------------
         return redirect()
             ->route('dossiers.show', $dossier)
             ->with('success', 'L\'audience a été planifiée avec succès.');
     }
 
-    /**
-     * Shows the form to edit an existing hearing.
-     *
-     * @param  Dossier   $dossier   Parent dossier (route binding, used for URL generation).
-     * @param  Audience  $audience  Route-model-bound audience to edit.
-     *
-     * @return View  audiences.edit  with: $dossier, $audience, $avocats
-     */
     public function edit(Dossier $dossier, Audience $audience): View
     {
+        // ---------------------------------------------------------------------
+        // Récupère la liste des avocats pour permettre de réassigner l'audience si besoin.
+        // ---------------------------------------------------------------------
         $avocats = User::avocats()->get();
 
+        // ---------------------------------------------------------------------
+        // Affiche le formulaire d'édition de l'audience avec les données existantes.
+        // ---------------------------------------------------------------------
         return view('audiences.edit', compact('dossier', 'audience', 'avocats'));
     }
 
-    /**
-     * Validates and saves changes to an existing hearing, then logs the action.
-     *
-     * @param  UpdateAudienceRequest  $request   Validated update payload.
-     * @param  Dossier                $dossier   Parent dossier (for logging and redirect).
-     * @param  Audience               $audience  The hearing to update.
-     *
-     * @return RedirectResponse  Redirects to dossiers.show.
-     */
     public function update(UpdateAudienceRequest $request, Dossier $dossier, Audience $audience): RedirectResponse
     {
+        // ---------------------------------------------------------------------
+        // Met à jour les champs de l'audience (date, heure, tribunal, statut, etc.).
+        // ---------------------------------------------------------------------
         $audience->update($request->validated());
 
+        // ---------------------------------------------------------------------
+        // Trace la modification de l'audience dans l'historique du dossier.
+        // ---------------------------------------------------------------------
         $dossier->enregistrerAction(
             "Audience mise à jour : {$audience->tribunal} ({$audience->statut})",
             $request->user(),
         );
 
+        // ---------------------------------------------------------------------
+        // Redirection vers le dossier parent.
+        // ---------------------------------------------------------------------
         return redirect()
             ->route('dossiers.show', $dossier)
             ->with('success', 'L\'audience a été mise à jour.');
     }
 
-    /**
-     * Logs the deletion action then removes the hearing.
-     * Note: the log is written BEFORE deletion so the dossier still exists.
-     *
-     * @param  Request   $request   Used to retrieve the authenticated user for the log.
-     * @param  Dossier   $dossier   Parent dossier (for logging and redirect).
-     * @param  Audience  $audience  The hearing to delete.
-     *
-     * @return RedirectResponse  Redirects to dossiers.show.
-     */
     public function destroy(Request $request, Dossier $dossier, Audience $audience): RedirectResponse
     {
+        // ---------------------------------------------------------------------
+        // Trace la suppression dans l'historique AVANT de supprimer l'audience,
+        // garantissant que les informations du tribunal soient conservées dans les logs.
+        // ---------------------------------------------------------------------
         $dossier->enregistrerAction(
             "Audience supprimée : {$audience->tribunal}",
             $request->user(),
         );
 
+        // ---------------------------------------------------------------------
+        // Suppression définitive de la ligne en base de données.
+        // ---------------------------------------------------------------------
         $audience->delete();
 
+        // ---------------------------------------------------------------------
+        // Redirection vers le dossier avec message flash.
+        // ---------------------------------------------------------------------
         return redirect()
             ->route('dossiers.show', $dossier)
             ->with('success', 'L\'audience a été supprimée.');

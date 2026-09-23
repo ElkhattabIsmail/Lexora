@@ -17,7 +17,7 @@ Route::get('/', function () {
 
 // Dashboard
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified']) // Assurez-vous que l'utilisateur est authentifié et vérifié  avant d'accéder au tableau de bord
     ->name('dashboard');
 
 // Profile

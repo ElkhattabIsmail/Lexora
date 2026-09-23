@@ -43,7 +43,7 @@ trait GeneratesSequentialReference
         $year = now()->year;
         $last = $model::whereYear('created_at', $year)->max('id') ?? 0;
         $sequence = str_pad($last + 1, 5, '0', STR_PAD_LEFT);
-
+        
         return "{$prefix}-{$year}-{$sequence}";
     }
 }

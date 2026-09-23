@@ -11,7 +11,7 @@ use Illuminate\View\View;
 
 /**
  * ClientController — manages CRUD operations for law firm clients.
- *
+
  * Routes (protected by auth + verified + role:Avocat,Administrateur):
  *   GET    /clients              → index()
  *   GET    /clients/create       → create()
@@ -23,124 +23,134 @@ use Illuminate\View\View;
  */
 class ClientController extends Controller
 {
-    /**
-     * Displays the paginated list of clients with optional search and type filters.
-     *
-     * Query string parameters:
-     *   @param  string  $search  (optional) Free-text search across nom, prenom, email.
-     *   @param  string  $type    (optional) Filter by client type: "Particulier" | "Entreprise".
-     *
-     * @return View  clients.index  with: $clients (paginated with dossiers count), $search, $type
-     *
-     * Similar: DossierController::index(), FactureController::index() — same filter+paginate pattern.
-     */
     public function index(Request $request): View
     {
+        // ---------------------------------------------------------------------
+        // Récupération des filtres depuis la requête GET :
+        // ---------------------------------------------------------------------
         $search = $request->string('search')->trim()->toString();
         $type = $request->string('type')->trim()->toString();
 
+        // ---------------------------------------------------------------------
+        // Construction dynamique de la requête Eloquent pour lister les clients :
+        // ---------------------------------------------------------------------
         $clients = Client::query()
+            // -----------------------------------------------------------------
+            // when($type, ...) : Filtre sur le type de client ('Particulier' ou 'Entreprise') si renseigné.
+            // -----------------------------------------------------------------
             ->when($type, fn ($q) => $q->where('type', $type))
+            // -----------------------------------------------------------------
+            // scopeRecherche($search) : Recherche textuelle insensible à la casse sur nom, prénom, email, téléphone.
+            // -----------------------------------------------------------------
             ->when($search, fn ($q) => $q->recherche($search))
+            // -----------------------------------------------------------------
+            // withCount('dossiers') :
+            // Ajoute une sous-requête SQL "SELECT count(*) FROM dossiers WHERE client_id = clients.id"
+            // permettant d'accéder à $client->dossiers_count sans charger les dossiers en mémoire.
+            // -----------------------------------------------------------------
             ->withCount('dossiers')
+            // -----------------------------------------------------------------
+            // latest() : Trie par date de création la plus récente (created_at DESC).
+            // -----------------------------------------------------------------
             ->latest()
+            // -----------------------------------------------------------------
+            // paginate(15) : Découpe les clients en pages de 15 éléments.
+            // -----------------------------------------------------------------
             ->paginate(15)
-            ->withQueryString();     
+            // -----------------------------------------------------------------
+            // withQueryString() : Conserve les filtres 'search' et 'type' dans les URLs de pagination.
+            // -----------------------------------------------------------------
+            ->withQueryString();
 
+        // ---------------------------------------------------------------------
+        // Retourne la vue Blade 'resources/views/clients/index.blade.php'
+        // ---------------------------------------------------------------------
         return view('clients.index', compact('clients', 'search', 'type'));
     }
 
-    /**
-     * Shows the blank client creation form.
-     *
-     * @return View  clients.create
-     */
     public function create(): View
     {
+        // ---------------------------------------------------------------------
+        // Affiche le formulaire vierge de création d'un client.
+        // ---------------------------------------------------------------------
         return view('clients.create');
     }
 
-    /**
-     * Validates the form data and creates a new Client record.
-     *
-     * @param  StoreClientRequest  $request  Validated form data.
-     *
-     * @return RedirectResponse  Redirects to clients.show on success.
-     */
     public function store(StoreClientRequest $request): RedirectResponse
     {
+        // ---------------------------------------------------------------------
+        // Client::create(...) :
+        // Valide les données via StoreClientRequest et enregistre le nouveau client en base.
+        // ---------------------------------------------------------------------
         $client = Client::create($request->validated());
 
+        // ---------------------------------------------------------------------
+        // Redirige vers la fiche détaillée du client avec message flash de succès.
+        // ---------------------------------------------------------------------
         return redirect()
             ->route('clients.show', $client)
             ->with('success', 'Le client a été créé avec succès.');
     }
 
-    /**
-     * Displays a single client with their related dossiers and factures.
-     *
-     * @param  Client  $client  Route-model-bound client instance.
-     *
-     * Loaded relations: dossiers.avocat, factures
-     *
-     * @return View  clients.show  with: $client
-     */
     public function show(Client $client): View
     {
+        // ---------------------------------------------------------------------
+        // load(...) :
+        // Lazy Eager Loading pour charger les dossiers (avec leur avocat assigné) et les factures associées.
+        // Évite le problème de requêtes N+1 lors de l'affichage des onglets.
+        // ---------------------------------------------------------------------
         $client->load(['dossiers.avocat', 'factures']);
 
+        // ---------------------------------------------------------------------
+        // Affiche la vue 'resources/views/clients/show.blade.php'.
+        // ---------------------------------------------------------------------
         return view('clients.show', compact('client'));
     }
 
-    /**
-     * Shows the edit form for an existing client.
-     *
-     * @param  Client  $client  Route-model-bound client instance.
-     *
-     * @return View  clients.edit  with: $client
-     */
     public function edit(Client $client): View
     {
+        // ---------------------------------------------------------------------
+        // Affiche le formulaire d'édition prérempli avec les informations du client.
+        // ---------------------------------------------------------------------
         return view('clients.edit', compact('client'));
     }
 
-    /**
-     * Validates and saves changes to an existing client.
-     *
-     * @param  UpdateClientRequest  $request  Validated update payload.
-     * @param  Client               $client   Route-model-bound client to update.
-     *
-     * @return RedirectResponse  Redirects to clients.show on success.
-     */
     public function update(UpdateClientRequest $request, Client $client): RedirectResponse
     {
+        // ---------------------------------------------------------------------
+        // Met à jour les colonnes du client avec les données validées.
+        // ---------------------------------------------------------------------
         $client->update($request->validated());
 
+        // ---------------------------------------------------------------------
+        // Redirige vers la fiche client avec un message flash de confirmation.
+        // ---------------------------------------------------------------------
         return redirect()
             ->route('clients.show', $client)
             ->with('success', 'Les informations du client ont été mises à jour.');
     }
 
-    /**
-     * Deletes a client if they have no associated dossiers or factures.
-     * Guards against orphaned financial/legal data by refusing deletion
-     * when related records exist.
-     *
-     * @param  Client  $client  Route-model-bound client to delete.
-     *
-     * @return RedirectResponse  Redirects to clients.show with an error if blocked,
-     *                           or to clients.index on success.
-     */
     public function destroy(Client $client): RedirectResponse
     {
-        if ($client->dossiers()->exists() || $client->factures()->exists()) { 
+        // ---------------------------------------------------------------------
+        // Garde-fou d'intégrité référentielle :
+        // Vérifie via exists() si le client a des dossiers ou des factures en cours.
+        // exists() effectue un "SELECT 1" rapide sans charger tous les objets.
+        // ---------------------------------------------------------------------
+        if ($client->dossiers()->exists() || $client->factures()->exists()) {
             return redirect()
                 ->route('clients.show', $client)
                 ->with('error', 'Impossible de supprimer ce client : il possède des dossiers ou des factures.');
         }
 
+        // ---------------------------------------------------------------------
+        // Suppression sécurisée du client orphelin de tout dossier/facture.
+        // ---------------------------------------------------------------------
         $client->delete();
 
+        // ---------------------------------------------------------------------
+        // Redirection vers l'index des clients avec message de succès.
+        // ---------------------------------------------------------------------
         return redirect()
             ->route('clients.index')
             ->with('success', 'Le client a été supprimé.');

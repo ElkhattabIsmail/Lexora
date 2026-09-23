@@ -6,100 +6,61 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * Audience Model — represents a scheduled court hearing.
- *
- * An audience is always linked to a Dossier (legal case) and to the
- * lawyer (avocat) who will appear in court. It tracks the tribunal,
- * date/time, and current status of the hearing.
- *
- * Relationships:
- *   - belongsTo Dossier  (the case this hearing is for)
- *   - belongsTo User     (the lawyer attending, via avocat_id)
- */
 class Audience extends Model
 {
     use HasFactory;
 
-    /**
-     * Mass-assignable attributes.
-     *
-     * @var list<string>
-     */
+    // -------------------------------------------------------------------------
+    // Colonnes modifiables par assignation de masse
+    // -------------------------------------------------------------------------
     protected $fillable = [
-        'date',         // Hearing date (Carbon date)
-        'heure',        // Hearing time as string e.g. "09:30"
-        'tribunal',     // Name/location of the court
-        'observations', // Free-text notes about the hearing
+        'date',         // Date de l'audience (format YYYY-MM-DD)
+        'heure',        // Heure de l'audience (format HH:MM)
+        'tribunal',     // Juridiction / Tribunal convoqué
+        'observations', // Remarques ou consignes pour l'audience
         'statut',       // "Prévue" | "Terminée" | "Annulée"
-        'dossier_id',   // FK → dossiers.id
-        'avocat_id',    // FK → users.id (must have role Avocat)
+        'dossier_id',   // Clé étrangère vers dossiers.id
+        'avocat_id',    // Clé étrangère vers users.id (avocat plaidant)
     ];
 
-    /**
-     * Automatic type casts.
-     * - date → Carbon date instance (no time component stored here; time is in 'heure').
-     *
-     * @var array<string, string>
-     */
+    // -------------------------------------------------------------------------
+    // Castings de types
+    // -------------------------------------------------------------------------
     protected $casts = [
         'date' => 'date',
     ];
 
-    // =========================================================================
-    // Relationships
-    // =========================================================================
-
-    /**
-     * The legal case (dossier) this hearing belongs to.
-     *
-     * Usage : $audience->dossier->numero_dossier
-     * Similar: Document::dossier(), Historique::dossier() — same belongsTo(Dossier).
-     *
-     * @return BelongsTo<Dossier, $this>
-     */
     public function dossier(): BelongsTo
     {
+        // ---------------------------------------------------------------------
+        // Relation BelongsTo : le dossier juridique rattaché à cette audience
+        // ---------------------------------------------------------------------
         return $this->belongsTo(Dossier::class);
     }
 
-    /**
-     * The lawyer (User with role Avocat) assigned to this hearing.
-     * Uses 'avocat_id' as the foreign key instead of the default 'user_id'.
-     *
-     * Usage : $audience->avocat->nom_complet
-     * Similar: Dossier::avocat() — identical avocat_id foreign key pattern.
-     *
-     * @return BelongsTo<User, $this>
-     */
     public function avocat(): BelongsTo
     {
+        // ---------------------------------------------------------------------
+        // Relation BelongsTo personnalisée :
+        // Cible l'avocat désigné pour représenter le client lors de cette audience
+        // via la clé étrangère explicite 'avocat_id'.
+        // ---------------------------------------------------------------------
         return $this->belongsTo(User::class, 'avocat_id');
     }
 
-    // =========================================================================
-    // State helpers
-    // =========================================================================
-
-    /**
-     * Returns true when this hearing has been cancelled.
-     *
-     * Usage : if ($audience->isAnnulee()) { ... }
-     * Similar: isPrevue() — mutually exclusive counterpart.
-     */
     public function isAnnulee(): bool
     {
+        // ---------------------------------------------------------------------
+        // Helper d'état : vérifie si l'audience a été annulée
+        // ---------------------------------------------------------------------
         return $this->statut === 'Annulée';
     }
 
-    /**
-     * Returns true when this hearing is still scheduled (not yet held or cancelled).
-     *
-     * Usage : if ($audience->isPrevue()) { ... }
-     * Similar: isAnnulee() — mutually exclusive counterpart.
-     */
     public function isPrevue(): bool
     {
+        // ---------------------------------------------------------------------
+        // Helper d'état : vérifie si l'audience est toujours planifiée
+        // ---------------------------------------------------------------------
         return $this->statut === 'Prévue';
     }
 }

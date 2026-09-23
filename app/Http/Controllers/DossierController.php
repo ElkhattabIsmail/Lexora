@@ -49,83 +49,128 @@ class DossierController extends Controller
      */
     public function index(Request $request): View
     {
+        // ---------------------------------------------------------------------
+        // Récupération et assainissement des paramètres passés dans l'URL (?statut=...&avocat_id=...&search=...)
+        // ---------------------------------------------------------------------
         $statut = $request->string('statut')->trim()->toString();
-        $avocatId = $request->integer('avocat_id') ?: null; // Elvis operator:
+        $avocatId = $request->integer('avocat_id') ?: null;
         $search = $request->string('search')->trim()->toString();
 
+
+        // ---------------------------------------------------------------------
+        // Construction dynamique de la requête Eloquent :
+        // ---------------------------------------------------------------------
         $dossiers = Dossier::query()
+            // -----------------------------------------------------------------
+            // with(['client', 'avocat']) :
+            // Eager loading des relations pour charger tous les clients et avocats liés
+            // en seulement 2 requêtes SQL supplémentaires au lieu de requêtes N+1.
+            // -----------------------------------------------------------------
             ->with(['client', 'avocat'])
+            // -----------------------------------------------------------------
+            // when($condition, Closure) :
+            // N'applique le filtre SQL WHERE que si la variable $statut est non vide.
+            // -----------------------------------------------------------------
             ->when($statut, fn ($q) => $q->where('statut', $statut))
+            // -----------------------------------------------------------------
+            // when($condition, Closure) :
+            // Filtre sur la clé étrangère avocat_id si un avocat spécifique a été sélectionné.
+            // -----------------------------------------------------------------
             ->when($avocatId, fn ($q) => $q->where('avocat_id', $avocatId))
+            // -----------------------------------------------------------------
+            // scopeRecherche($search) :
+            // Applique le scope local de recherche multicritère (numéro, type d'affaire, client).
+            // -----------------------------------------------------------------
             ->when($search, fn ($q) => $q->recherche($search))
+            // -----------------------------------------------------------------
+            // latest() : Raccourci Eloquent équivalent à orderBy('created_at', 'desc').
+            // -----------------------------------------------------------------
             ->latest()
+            // -----------------------------------------------------------------
+            // paginate(15) : Découpe les résultats par lots de 15 éléments par page.
+            // -----------------------------------------------------------------
             ->paginate(15)
+            // -----------------------------------------------------------------
+            // withQueryString() : Conserve automatiquement les filtres de recherche dans les liens de pagination (?page=2&search=...).
+            // -----------------------------------------------------------------
             ->withQueryString();
 
+        // ---------------------------------------------------------------------
+        // User::avocats() :
+        // Scope local sur le modèle User qui ne filtre que les utilisateurs ayant le rôle "Avocat".
+        // Alimente la liste déroulante du filtre de recherche dans la vue.
+        // ---------------------------------------------------------------------
         $avocats = User::avocats()->get();
 
+/*                         dd($search);
+ */
+
+        // ---------------------------------------------------------------------
+        // Retourne la vue Blade 'resources/views/dossiers/index.blade.php' avec les variables compactées.
+        // ---------------------------------------------------------------------
         return view('dossiers.index', compact('dossiers', 'avocats', 'statut', 'avocatId', 'search'));
     }
 
-    /**
-     * Shows the form to create a new dossier.
-     * Pre-loads the list of clients (alphabetical) and avocats (alphabetical)
-     * to populate the select dropdowns.
-     *
-     * @return View  dossiers.create  with: $clients, $avocats
-     *
-     * Similar: AudienceController::create(), FactureController::create()
-     */
     public function create(): View
     {
+        // ---------------------------------------------------------------------
+        // Récupère la liste alphabétique de tous les clients pour le <select> du formulaire.
+        // ---------------------------------------------------------------------
         $clients = Client::orderBy('nom')->get();
+
+        // ---------------------------------------------------------------------
+        // Récupère la liste des utilisateurs ayant le rôle 'Avocat' pour l'assignation du dossier.
+        // ---------------------------------------------------------------------
         $avocats = User::avocats()->get();
 
+        // ---------------------------------------------------------------------
+        // Affiche le formulaire de saisie : 'resources/views/dossiers/create.blade.php'
+        // ---------------------------------------------------------------------
         return view('dossiers.create', compact('clients', 'avocats'));
     }
 
-    /**
-     * Validates the form submission, creates a new Dossier, and logs the action.
-     *
-     * @param  StoreDossierRequest  $request  Validated form data (see rules in StoreDossierRequest).
-     *
-     * Steps:
-     *   1. Validate input via StoreDossierRequest.
-     *   2. Auto-generate the reference number e.g. "DOS-2024-00001".
-     *   3. Create the Dossier record.
-     *   4. Log "Dossier ouvert" in the historique.
-     *   5. Redirect to the show page with a success flash.
-     *
-     * @return RedirectResponse  Redirects to dossiers.show.
-     *
-     * Similar: FactureController::store() — same auto-reference + log pattern.
-     */
     public function store(StoreDossierRequest $request): RedirectResponse
     {
+        // ---------------------------------------------------------------------
+        // request->validated() :
+        // Ne récupère que les données validées selon les règles strictes de StoreDossierRequest.
+        // ---------------------------------------------------------------------
         $data = $request->validated();
+
+        // ---------------------------------------------------------------------
+        // generateSequentialReference(...) :
+        // Méthode du trait GeneratesSequentialReference qui calcule le numéro annuel unique (ex: DOS-2026-00001).
+        // ---------------------------------------------------------------------
         $data['numero_dossier'] = $this->generateSequentialReference(Dossier::class, 'DOS');
 
+        // ---------------------------------------------------------------------
+        // Dossier::create(...) :
+        // Insère l'enregistrement dans la table 'dossiers' en utilisant le mass assignment ($fillable).
+        // ---------------------------------------------------------------------
         $dossier = Dossier::create($data);
+
+        // ---------------------------------------------------------------------
+        // enregistrerAction(...) :
+        // Journalise l'événement d'ouverture dans la table 'historiques' avec l'utilisateur connecté ($request->user()).
+        // ---------------------------------------------------------------------
         $dossier->enregistrerAction("Dossier ouvert : {$dossier->numero_dossier}", $request->user());
+
+        // ---------------------------------------------------------------------
+        // Redirection vers la vue de détail du dossier fraîchement créé avec message flash de succès.
+        // ---------------------------------------------------------------------
 
         return redirect()
             ->route('dossiers.show', $dossier)
             ->with('success', 'Le dossier a été créé avec succès.');
     }
 
-    /**
-     * Displays a detailed view of a single dossier.
-     * Eager-loads all related data to avoid N+1 queries on the show page.
-     *
-     * @param  Dossier  $dossier  Route-model-bound dossier instance.
-     *
-     * Loaded relations: client, avocat, audiences.avocat, documents.uploader,
-     *                   factures, historiques.user
-     *
-     * @return View  dossiers.show  with: $dossier
-     */
     public function show(Dossier $dossier): View
     {
+        // ---------------------------------------------------------------------
+        // load(...) :
+        // Eager loading à la demande (Lazy Eager Loading) sur l'instance injectée par le Route Model Binding.
+        // Charge en mémoire les relations directes et imbriquées (audiences.avocat, documents.uploader, etc.).
+        // ---------------------------------------------------------------------
         $dossier->load([
             'client',
             'avocat',
@@ -135,49 +180,52 @@ class DossierController extends Controller
             'historiques.user',
         ]);
 
+        // ---------------------------------------------------------------------
+        // Affiche la vue 'resources/views/dossiers/show.blade.php' contenant les onglets détaillés.
+        // ---------------------------------------------------------------------
         return view('dossiers.show', compact('dossier'));
     }
 
-    /**
-     * Shows the form to edit an existing dossier.
-     * Pre-loads clients and avocats for the select dropdowns.
-     *
-     * @param  Dossier  $dossier  Route-model-bound dossier instance.
-     *
-     * @return View  dossiers.edit  with: $dossier, $clients, $avocats
-     */
     public function edit(Dossier $dossier): View
     {
+        // ---------------------------------------------------------------------
+        // Prépare les données nécessaires pour alimenter les listes déroulantes de modification.
+        // ---------------------------------------------------------------------
         $clients = Client::orderBy('nom')->get();
         $avocats = User::avocats()->get();
 
+        // ---------------------------------------------------------------------
+        // Affiche le formulaire d'édition prérempli avec les données actuelles de $dossier.
+        // ---------------------------------------------------------------------
         return view('dossiers.edit', compact('dossier', 'clients', 'avocats'));
     }
 
-    /**
-     * Validates and applies changes to an existing dossier.
-     * If the status changed, a new historique entry is automatically logged.
-     *
-     * @param  UpdateDossierRequest  $request  Validated update payload.
-     * @param  Dossier               $dossier  Route-model-bound dossier to update.
-     *
-     * Steps:
-     *   1. Validate input via UpdateDossierRequest.
-     *   2. Merge the boolean 'archive' flag from the request.
-     *   3. Persist the update.
-     *   4. If statut changed, log "Statut modifié : old → new" to historique.
-     *   5. Redirect to the show page with a success flash.
-     *
-     * @return RedirectResponse  Redirects to dossiers.show.
-     */
     public function update(UpdateDossierRequest $request, Dossier $dossier): RedirectResponse
     {
+        // ---------------------------------------------------------------------
+        // Données validées via UpdateDossierRequest.
+        // ---------------------------------------------------------------------
         $data = $request->validated();
+
+        // ---------------------------------------------------------------------
+        // Convertit la valeur de la case à cocher 'archive' en booléen strict (true/false).
+        // ---------------------------------------------------------------------
         $data['archive'] = $request->boolean('archive');
 
+        // ---------------------------------------------------------------------
+        // Mémorise le statut avant mise à jour pour détecter tout changement d'état.
+        // ---------------------------------------------------------------------
         $statutAvant = $dossier->statut;
+
+        // ---------------------------------------------------------------------
+        // Enregistre les modifications en base de données.
+        // ---------------------------------------------------------------------
         $dossier->update($data);
 
+        // ---------------------------------------------------------------------
+        // Détection de transition d'état :
+        // Si le statut a changé (ex: "En cours" -> "Gagné"), on consigne ce changement dans l'historique d'audit.
+        // ---------------------------------------------------------------------
         if ($statutAvant !== $dossier->statut) {
             $dossier->enregistrerAction(
                 "Statut modifié : {$statutAvant} → {$dossier->statut}",
@@ -185,33 +233,37 @@ class DossierController extends Controller
             );
         }
 
+        // ---------------------------------------------------------------------
+        // Redirection vers la page du dossier avec confirmation de mise à jour.
+        // ---------------------------------------------------------------------
         return redirect()
             ->route('dossiers.show', $dossier)
             ->with('success', 'Le dossier a été mis à jour.');
     }
 
-    /**
-     * Deletes a dossier and dispatches a background job to clean up its files.
-     *
-     * @param  Dossier  $dossier  Route-model-bound dossier instance to delete.
-     *
-     * Steps:
-     *   1. Capture the dossier ID before deletion (needed for the job).
-     *   2. Delete the Dossier (cascades to audiences, historiques, etc. via DB constraints).
-     *   3. Dispatch SupprimerDocumentsDossier to remove stored files asynchronously.
-     *   4. Redirect to the list with a success flash.
-     *
-     * @return RedirectResponse  Redirects to dossiers.index.
-     *
-     * Similar: ClientController::destroy(), FactureController::destroy()
-     */
     public function destroy(Dossier $dossier): RedirectResponse
     {
+        // ---------------------------------------------------------------------
+        // Mémorise l'ID numérique avant suppression de l'enregistrement Eloquent.
+        // ---------------------------------------------------------------------
         $dossierId = $dossier->id;
 
+        // ---------------------------------------------------------------------
+        // Supprime l'enregistrement dans la table 'dossiers'.
+        // Grâce aux clés étrangères ON DELETE CASCADE, les audiences et historiques liés sont supprimés par le SGBD.
+        // ---------------------------------------------------------------------
         $dossier->delete();
+
+        // ---------------------------------------------------------------------
+        // SupprimerDocumentsDossier::dispatch(...) :
+        // Déclenche un Job asynchrone dans la file d'attente (Queue)
+        // pour supprimer physiquement tous les fichiers du dossier sur le disque sans bloquer la requête HTTP.
+        // ---------------------------------------------------------------------
         SupprimerDocumentsDossier::dispatch($dossierId);
 
+        // ---------------------------------------------------------------------
+        // Redirection vers la liste des dossiers avec notification flash.
+        // ---------------------------------------------------------------------
         return redirect()
             ->route('dossiers.index')
             ->with('success', 'Le dossier a été supprimé.');

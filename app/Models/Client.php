@@ -7,94 +7,53 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * Client Model — represents a customer of the law firm.
- *
- * A client may be either a private individual ("Particulier") or a company
- * ("Entreprise"). This distinction affects how the full name is displayed
- * and may influence business rules around billing.
- *
- * Relationships:
- *   - hasMany Dossier  (legal cases filed for this client)
- *   - hasMany Facture  (invoices issued to this client)
- */
 class Client extends Model
 {
     use HasFactory;
 
-    /**
-     * Mass-assignable attributes.
-     *
-     * @var list<string>
-     */
+    // -------------------------------------------------------------------------
+    // Colonnes modifiables par assignation de masse
+    // -------------------------------------------------------------------------
     protected $fillable = [
-        'nom',       // Family name (or company name for Entreprise)
-        'prenom',    // Given name (empty/null for Entreprise)
-        'telephone',
-        'email',
-        'adresse',   // Mailing address
-        'type',      // "Particulier" | "Entreprise"
+        'nom',       // Nom de famille ou raison sociale de l'entreprise
+        'prenom',    // Prénom (null si entreprise)
+        'telephone', // Numéro de téléphone de contact
+        'email',     // Adresse email unique
+        'adresse',   // Adresse postale
+        'type',      // 'Particulier' ou 'Entreprise'
     ];
 
-    /**
-     * Automatic type casts.
-     * 'type' is stored as a VARCHAR and cast to a native PHP string on read.
-     *
-     * @var array<string, string>
-     */
+    // -------------------------------------------------------------------------
+    // Castings de types
+    // -------------------------------------------------------------------------
     protected $casts = [
         'type' => 'string',
     ];
 
-    // =========================================================================
-    // Relationships
-    // =========================================================================
-
-    /**
-     * All legal case files (dossiers) belonging to this client.
-     *
-     * Usage : $client->dossiers  →  Collection<Dossier>
-     * Similar: factures() — same hasMany pattern on Client.
-     *
-     * @return HasMany<Dossier, $this>
-     */
     public function dossiers(): HasMany
     {
+        // ---------------------------------------------------------------------
+        // Relation HasMany : tous les dossiers ouverts pour ce client
+        // SQL : WHERE dossiers.client_id = clients.id
+        // ---------------------------------------------------------------------
         return $this->hasMany(Dossier::class);
     }
 
-    /**
-     * All invoices (factures) issued to this client.
-     *
-     * Usage : $client->factures  →  Collection<Facture>
-     * Similar: dossiers() — same hasMany pattern on Client.
-     *
-     * @return HasMany<Facture, $this>
-     */
     public function factures(): HasMany
     {
+        // ---------------------------------------------------------------------
+        // Relation HasMany : ensemble des factures émises pour ce client
+        // SQL : WHERE factures.client_id = clients.id
+        // ---------------------------------------------------------------------
         return $this->hasMany(Facture::class);
     }
 
-    // =========================================================================
-    // Eloquent local scopes
-    // =========================================================================
-
-    /**
-     * Filters clients by a free-text search across nom, prenom, and email
-     * using case-insensitive SQL LIKE queries.
-     *
-     * @param  Builder $query  Injected automatically by Eloquent.
-     * @param  string  $search The term to search for; wildcards added automatically.
-     *
-     * Usage:
-     *   Client::recherche('dupont')->paginate(15)
-     *
-     * Similar: User::scopeRecherche(), Dossier::scopeRecherche(),
-     *          Facture::scopeRecherche() — same pattern across all models.
-     */
     public function scopeRecherche(Builder $query, string $search): Builder
     {
+        // ---------------------------------------------------------------------
+        // Scope local permettant la recherche multicritère sur nom, prénom ou email
+        // SQL : WHERE (nom LIKE %...% OR prenom LIKE %...% OR email LIKE %...%)
+        // ---------------------------------------------------------------------
         return $query->where(function (Builder $query) use ($search) {
             $query->where('nom', 'like', "%{$search}%")
                 ->orWhere('prenom', 'like', "%{$search}%")
@@ -102,53 +61,33 @@ class Client extends Model
         });
     }
 
-    // =========================================================================
-    // State helpers
-    // =========================================================================
-
-    /**
-     * Returns true when this client is a company ("Entreprise").
-     *
-     * Usage : if ($client->isEntreprise()) { ... }
-     * Similar: isParticulier() — mutually exclusive counterpart.
-     */
     public function isEntreprise(): bool
     {
+        // ---------------------------------------------------------------------
+        // Helper d'état : vérifie si le client est une personne morale ("Entreprise")
+        // ---------------------------------------------------------------------
         return $this->type === 'Entreprise';
     }
 
-    /**
-     * Returns true when this client is a private individual ("Particulier").
-     *
-     * Usage : if ($client->isParticulier()) { ... }
-     * Similar: isEntreprise() — mutually exclusive counterpart.
-     */
     public function isParticulier(): bool
     {
+        // ---------------------------------------------------------------------
+        // Helper d'état : vérifie si le client est une personne physique ("Particulier")
+        // ---------------------------------------------------------------------
         return $this->type === 'Particulier';
     }
 
-    // =========================================================================
-    // Accessors
-    // =========================================================================
-
-    /**
-     * Accessor — returns the client's display name.
-     *
-     * For companies  : returns $this->nom (the company/trading name).
-     * For individuals: returns "prenom nom" (first name then family name).
-     *
-     * Usage : $client->nom_complet  →  "Ali Dupont" or "ACME Corp"
-     * Similar: User::getNomCompletAttribute() — same prenom+nom pattern.
-     */
     public function getNomCompletAttribute(): string
     {
-        // Companies only have a single trade name stored in 'nom'.
+        // ---------------------------------------------------------------------
+        // Accesseur Eloquent ($client->nom_complet) :
+        // Pour une entreprise, retourne uniquement la raison sociale.
+        // Pour un particulier, concatène prénom et nom proprement.
+        // ---------------------------------------------------------------------
         if ($this->isEntreprise()) {
             return $this->nom;
         }
 
-        // Trim handles the edge case where prenom is null/empty.
         return trim("{$this->prenom} {$this->nom}");
     }
 }

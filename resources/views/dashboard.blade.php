@@ -20,6 +20,38 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col relative overflow-hidden group hover:shadow-md transition-shadow">
                     <div class="absolute -right-6 -top-6 w-24 h-24 bg-brand-light/10 rounded-full group-hover:scale-110 transition-transform"></div>
                     <div class="flex justify-between items-start mb-4">
+
+<!--     How $stats Variable looks like.
+     
+        statscols = 5
+                                $stats = [
+                                'dossiers_actifs' => 2,
+
+                                'audiences_a_venir' => 3,
+
+                                'total_clients' => 25,
+
+                                'revenus_du_mois' => 8000,
+
+                                'taux_reussite' => 60,
+
+                                'dossiers_par_mois' => collect([
+                                    1 => 2,
+                                    2 => 3,
+                                    4 => 1,
+                                    6 => 2,
+                                    9 => 1,
+                                ]),
+
+                                'prochaines_audiences' => [
+                                    // 5 upcoming Audience models
+                                ],
+
+                                'derniers_dossiers' => [
+                                    // 5 latest Dossier models
+                                ],
+                            ]; -->
+
                         <div>
                             <p class="text-sm font-medium text-slate-500">Dossiers Actifs</p>
                             <h3 class="text-3xl font-bold text-slate-900 mt-1">{{ number_format($stats['dossiers_actifs']) }}</h3>
